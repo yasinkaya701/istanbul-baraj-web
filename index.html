@@ -679,17 +679,44 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
       etr: '#d62728'
     };
 
+    function buildSeasonWeights(base) {
+      const sum = new Array(12).fill(0);
+      const count = new Array(12).fill(0);
+      for (let i = 1; i < base.length; i++) {
+        const prev = base[i - 1].fill;
+        const cur = base[i].fill;
+        if (prev === null || prev === undefined || cur === null || cur === undefined) continue;
+        const m = new Date(base[i].date).getMonth();
+        sum[m] += (cur - prev);
+        count[m] += 1;
+      }
+      const avg = sum.map((s, i) => (count[i] ? s / count[i] : 0));
+      const maxPos = Math.max(...avg.map(v => Math.max(0, v)), 0.0001);
+      const maxNeg = Math.max(...avg.map(v => Math.max(0, -v)), 0.0001);
+      const rainW = avg.map(v => Math.max(0, v) / maxPos);
+      const et0W = avg.map(v => Math.max(0, -v) / maxNeg);
+      return { rainW, et0W };
+    }
+
     function getSeries(model, rain, et0, useM3, evapM3, useGrowth) {
       const coeff = window.SIM_COEFFS || { a_rain: 0.0003, b_et0: -0.0009, c_use: -3e-8, mean_rain: 70, mean_et0: 80, mean_use_monthly: 2.7e6 };
       const sens = { rain: 400, et0: 400, use: 1.8, evap: 1.2 };
       const base = (modelData[model] || []).filter(d => d.date >= '2024-03-01');
+      const season = buildSeasonWeights(base);
+      const driftScale = 0.12;
       const usageProfile = (window.USAGE_PROFILE && window.USAGE_PROFILE.profile) ? window.USAGE_PROFILE.profile : null;
       const startDate = base[0] ? new Date(base[0].date) : null;
-      const adjusted = base.map(d => {
-        const rainEff = coeff.a_rain * (coeff.mean_rain * (rain / 100)) * sens.rain;
-        const et0Eff = coeff.b_et0 * (coeff.mean_et0 * (et0 / 100)) * sens.et0;
-        const baseUseMonthly = (window.BASELINE ? window.BASELINE.usage_baraj_m3 : 275104161) / 12.0;
-        const baseEvapMonthly = (window.BASELINE ? window.BASELINE.evap_total_m3 : 98840094) / 12.0;
+      const baseUseMonthly = (window.BASELINE ? window.BASELINE.usage_baraj_m3 : 275104161) / 12.0;
+      const baseEvapMonthly = (window.BASELINE ? window.BASELINE.evap_total_m3 : 98840094) / 12.0;
+      let prevAdj = base[0] && base[0].fill !== null && base[0].fill !== undefined ? base[0].fill : 0;
+      const adjusted = base.map((d, i) => {
+        const curFill = d.fill !== null && d.fill !== undefined ? d.fill : prevAdj;
+        if (i === 0) {
+          return { date: d.date, fill: Math.max(0, Math.min(100, prevAdj)) };
+        }
+        const prevBase = base[i - 1];
+        const prevFill = prevBase && prevBase.fill !== null && prevBase.fill !== undefined ? prevBase.fill : prevAdj;
+        const baseDelta = curFill - prevFill;
         let years = 0;
         if (startDate) {
           const cur = new Date(d.date);
@@ -700,9 +727,13 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
         const seasonal = usageProfile ? usageProfile[m] * 12.0 : 1.0;
         const useMonthly = (useM3 * useScale * 1e6) / 12.0 * seasonal;
         const evapMonthly = (evapM3 * 1e6) / 12.0;
+        const rainEff = coeff.a_rain * (coeff.mean_rain * (rain / 100)) * sens.rain * (season.rainW[m] || 0) * driftScale;
+        const et0Eff = coeff.b_et0 * (coeff.mean_et0 * (et0 / 100)) * sens.et0 * (season.et0W[m] || 0) * driftScale;
         const useEff = coeff.c_use * (useMonthly - baseUseMonthly) * sens.use;
         const evapEff = coeff.c_use * 0.6 * (evapMonthly - baseEvapMonthly) * sens.evap;
-        return { date: d.date, fill: Math.max(0, Math.min(100, d.fill + rainEff + et0Eff + useEff + evapEff)) };
+        const next = Math.max(0, Math.min(100, prevAdj + baseDelta + rainEff + et0Eff + useEff + evapEff));
+        prevAdj = next;
+        return { date: d.date, fill: next };
       });
       return { base, adjusted };
     }

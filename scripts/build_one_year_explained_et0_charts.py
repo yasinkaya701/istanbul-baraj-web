@@ -45,11 +45,11 @@ def parse_args() -> argparse.Namespace:
 
 def add_season_bands(ax: plt.Axes, year: int, colors: dict[str, str]) -> None:
     seasons = [
-        ("Kis", f"{year}-01-01", f"{year}-03-01"),
-        ("Ilkbahar", f"{year}-03-01", f"{year}-06-01"),
+        ("Kış", f"{year}-01-01", f"{year}-03-01"),
+        ("İlkbahar", f"{year}-03-01", f"{year}-06-01"),
         ("Yaz", f"{year}-06-01", f"{year}-09-01"),
         ("Sonbahar", f"{year}-09-01", f"{year}-12-01"),
-        ("Kis", f"{year}-12-01", f"{year+1}-01-01"),
+        ("Kış", f"{year}-12-01", f"{year+1}-01-01"),
     ]
     for i, (label, start, end) in enumerate(seasons):
         alpha = 0.22 if i % 2 == 0 else 0.10
@@ -70,7 +70,7 @@ def make_daily_chart(df: pd.DataFrame, year: int, out_path: Path, label: str) ->
     low_row = year_df.loc[year_df["et0_mm_day"].idxmin()]
     stats_lines = [
         f"ortalama ET0: {year_df['et0_mm_day'].mean():.2f}",
-        f"zirve gun: {peak_row['date']:%d %b}",
+        f"zirve gün: {peak_row['date']:%d %b}",
         f"zirve ET0: {peak_row['et0_mm_day']:.2f}",
         f"dip ET0: {low_row['et0_mm_day']:.2f}",
     ]
@@ -85,31 +85,31 @@ def make_daily_chart(df: pd.DataFrame, year: int, out_path: Path, label: str) ->
         ax_text,
         context_title=f"Gunluk {label} ET0 | {year}",
         context_lines=[
-            "Zaman adimi: gunluk seri",
-            "Amac: mevsim ici ET0 ritmini gormek",
+            "Zaman adımı: günlük seri",
+            "Amaç: mevsim içi ET0 ritmini görmek",
         ],
         assumption_lines=[
-            "Tmean = (Tmax + Tmin) / 2 -> tutarli sicaklik ozeti.",
-            "Delta = f(Tmean) -> fiziksel olarak dogru egim.",
-            "G = 0 -> gunluk ET0 icin standart kabul.",
-            "u2 = 2.0 m/s -> eksik ruzgar icin fallback.",
-            "Rs = radiation CSV -> net radyasyon girdisi.",
+            "Tmean = (Tmax + Tmin) / 2 → tutarlı sıcaklık özeti.",
+            "Delta = f(Tmean) → fiziksel olarak doğru eğim.",
+            "G = 0 → günlük ET0 için standart kabul.",
+            "u2 = 2.0 m/s → eksik rüzgar için fallback.",
+            "Rs = radiation CSV → net radyasyon girdisi.",
         ],
         summary_lines=stats_lines,
         source_lines=[
-            f"real_extracted radiation: {real_days} gun",
-            f"synthetic radiation: {synthetic_days} gun",
+            f"gerçek radyasyon: {real_days} gün",
+            f"sentetik radyasyon: {synthetic_days} gün",
         ],
     )
 
     style_axes(ax_plot, colors)
     add_season_bands(ax_plot, year, colors)
-    ax_plot.plot(year_df["date"], year_df["et0_mm_day"], color=colors["daily"], linewidth=0.9, alpha=0.28, label="Gunluk ET0")
-    ax_plot.plot(year_df["date"], year_df["et0_30d"], color=colors["daily_ma"], linewidth=2.3, label="30 gun ortalama")
-    ax_plot.scatter(peak_row["date"], peak_row["et0_mm_day"], s=46, color=colors["accent"], zorder=4, label="Zirve gun")
-    ax_plot.scatter(low_row["date"], low_row["et0_mm_day"], s=42, color=colors["real_marker"], zorder=4, label="Dip gun")
+    ax_plot.plot(year_df["date"], year_df["et0_mm_day"], color=colors["daily"], linewidth=0.9, alpha=0.28, label="Günlük ET0")
+    ax_plot.plot(year_df["date"], year_df["et0_30d"], color=colors["daily_ma"], linewidth=2.3, label="30 gün ortalama")
+    ax_plot.scatter(peak_row["date"], peak_row["et0_mm_day"], s=46, color=colors["accent"], zorder=4, label="Zirve gün")
+    ax_plot.scatter(low_row["date"], low_row["et0_mm_day"], s=42, color=colors["real_marker"], zorder=4, label="Dip gün")
     ax_plot.annotate(
-        f"Zirve {peak_row['date']:%d %b}\n{peak_row['et0_mm_day']:.2f} mm/gun",
+        f"Zirve {peak_row['date']:%d %b}\n{peak_row['et0_mm_day']:.2f} mm/gün",
         xy=(peak_row["date"], peak_row["et0_mm_day"]),
         xytext=(18, 12),
         textcoords="offset points",
@@ -127,18 +127,18 @@ def make_daily_chart(df: pd.DataFrame, year: int, out_path: Path, label: str) ->
             s=10,
             color=colors["real_marker"],
             alpha=0.7,
-            label="Gercek radiation gunleri",
+            label="Gerçek radyasyon günleri",
         )
-    ax_plot.set_title(f"Gunluk {label} ET0 - {year}", fontsize=16, color=colors["text"], pad=14)
+    ax_plot.set_title(f"Günlük {label} ET0 - {year}", fontsize=16, color=colors["text"], pad=14)
     ax_plot.set_xlabel("Tarih", fontsize=11, color=colors["text"])
-    ax_plot.set_ylabel("ET0 (mm/gun)", fontsize=11, color=colors["text"])
+    ax_plot.set_ylabel("ET0 (mm/gün)", fontsize=11, color=colors["text"])
     ax_plot.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
     ax_plot.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
     ax_plot.set_xlim(pd.Timestamp(f"{year}-01-01"), pd.Timestamp(f"{year}-12-31"))
     ax_plot.text(
         0.985,
         0.04,
-        f"Gercek radiation payi: {real_days / max(real_days + synthetic_days, 1):.1%}",
+        f"Gerçek radyasyon payı: {real_days / max(real_days + synthetic_days, 1):.1%}",
         transform=ax_plot.transAxes,
         ha="right",
         va="bottom",
@@ -167,7 +167,7 @@ def make_monthly_chart(df: pd.DataFrame, year: int, out_path: Path, label: str) 
     peak_month = year_df.loc[year_df["et0_mm_month"].idxmax()]
     low_month = year_df.loc[year_df["et0_mm_month"].idxmin()]
     stats_lines = [
-        f"yillik toplam: {year_df['et0_mm_month'].sum():.1f}",
+        f"yıllık toplam: {year_df['et0_mm_month'].sum():.1f}",
         f"zirve ay: {peak_month['date']:%b}",
         f"zirve ET0: {peak_month['et0_mm_month']:.1f}",
         f"ortalama Rs: {year_df['rs_mj_m2_day'].mean():.1f}",
@@ -183,28 +183,28 @@ def make_monthly_chart(df: pd.DataFrame, year: int, out_path: Path, label: str) 
         ax_text,
         context_title=f"Aylik {label} ET0 | {year}",
         context_lines=[
-            "Zaman adimi: aylik toplamlama",
-            "Amac: tepe ay ve dusuk ay desenini gormek",
+            "Zaman adımı: aylık toplamlama",
+            "Amaç: tepe ay ve düşük ay desenini görmek",
         ],
         assumption_lines=[
-            "Gunluk ET0 once hesaplandi, sonra aya toplandi.",
-            "G = 0 -> gunluk denklem aynen korundu.",
-            "Rs dosyadan geldi -> ET0 ile birlikte okunur.",
-            "u2 = 2.0 m/s -> tum aylar icin ayni fallback.",
-            "Chart ET0 ile radyasyon desenini birlikte gosterir.",
+            "Günlük ET0 önce hesaplandı, sonra aya toplandı.",
+            "G = 0 → günlük denklem aynen korundu.",
+            "Rs dosyadan geldi → ET0 ile birlikte okunur.",
+            "u2 = 2.0 m/s → tüm aylar için aynı fallback.",
+            "Grafik ET0 ile radyasyonu birlikte gösterir.",
         ],
         summary_lines=stats_lines,
         source_lines=[
-            f"real_extracted radiation: {real_days} gun",
-            f"synthetic radiation: {synthetic_days} gun",
+            f"gerçek radyasyon: {real_days} gün",
+            f"sentetik radyasyon: {synthetic_days} gün",
         ],
     )
 
     style_axes(ax_plot, colors)
     month_labels = pd.to_datetime(year_df["date"]).dt.strftime("%b")
     x = np.arange(len(year_df))
-    bars = ax_plot.bar(x, year_df["et0_mm_month"], color=colors["monthly_bar"], width=0.72, edgecolor="none", label="Aylik ET0", zorder=2)
-    ax_plot.plot(x, year_df["et0_mm_month"], color=colors["monthly_line"], linewidth=2.2, marker="o", markersize=5, label="Aylik desen", zorder=3)
+    bars = ax_plot.bar(x, year_df["et0_mm_month"], color=colors["monthly_bar"], width=0.72, edgecolor="none", label="Aylık ET0", zorder=2)
+    ax_plot.plot(x, year_df["et0_mm_month"], color=colors["monthly_line"], linewidth=2.2, marker="o", markersize=5, label="Aylık desen", zorder=3)
     ax_plot.scatter(int(peak_month.name), peak_month["et0_mm_month"], s=46, color=colors["accent"], zorder=4)
     ax_plot.annotate(
         f"Zirve {peak_month['date']:%b}\n{peak_month['et0_mm_month']:.1f} mm/ay",
@@ -219,19 +219,19 @@ def make_monthly_chart(df: pd.DataFrame, year: int, out_path: Path, label: str) 
     )
     ax_aux = ax_plot.twinx()
     ax_aux.plot(x, year_df["rs_mj_m2_day"], color=colors["monthly_aux"], linewidth=1.8, linestyle=":", marker="s", markersize=4, label="Rs")
-    ax_aux.set_ylabel("Rs (MJ/m2/gun)", fontsize=10.5, color=colors["monthly_aux"])
+    ax_aux.set_ylabel("Rs (MJ/m²/gün)", fontsize=10.5, color=colors["monthly_aux"])
     ax_aux.tick_params(axis="y", colors=colors["monthly_aux"])
     ax_aux.spines["top"].set_visible(False)
     ax_aux.spines["left"].set_visible(False)
     ax_aux.spines["right"].set_color(colors["spine"])
     ax_plot.set_xticks(x, month_labels)
-    ax_plot.set_title(f"Aylik {label} ET0 - {year}", fontsize=16, color=colors["text"], pad=14)
+    ax_plot.set_title(f"Aylık {label} ET0 - {year}", fontsize=16, color=colors["text"], pad=14)
     ax_plot.set_xlabel("Ay", fontsize=11, color=colors["text"])
     ax_plot.set_ylabel("ET0 (mm/ay)", fontsize=11, color=colors["text"])
     ax_plot.text(
         0.985,
         0.04,
-        f"En dusuk ay: {low_month['date']:%b} | {low_month['et0_mm_month']:.1f} mm/ay",
+        f"En düşük ay: {low_month['date']:%b} | {low_month['et0_mm_month']:.1f} mm/ay",
         transform=ax_plot.transAxes,
         ha="right",
         va="bottom",

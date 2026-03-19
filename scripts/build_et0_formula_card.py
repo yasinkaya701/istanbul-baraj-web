@@ -37,10 +37,10 @@ def main() -> None:
     y = 0.95
     add_text(fig, 0.06, y, f"{label} ET0 Modeli", 27, "bold")
     y -= 0.055
-    add_text(fig, 0.06, y, "Bu calismada FAO-56 Penman-Monteith yaklasimini kullandik. Amac, sicaklik, nem, radyasyon ve buhar basinci acigi bilgisini birlestirerek gunluk referans evapotranspirasyonu hesaplamakti.", 17)
+    add_text(fig, 0.06, y, "Bu çalışmada FAO-56 Penman-Monteith yaklaşımını kullandık. Amaç, sıcaklık, nem, radyasyon ve buhar basıncı açığı bilgisini birleştirerek günlük referans evapotranspirasyonu hesaplamaktı.", 17)
 
     y -= 0.09
-    add_text(fig, 0.06, y, "1. Kullandigimiz temel formul", 21, "bold")
+    add_text(fig, 0.06, y, "1. Kullandığımız temel formül", 21, "bold")
     y -= 0.045
     add_text(fig, 0.09, y, "FAO-56 Penman-Monteith:", 17, "bold")
     formula = r"$ET_0 = \frac{0.408\,\Delta\,(R_n-G) + \gamma\,\frac{900}{T+273}\,u_2\,(e_s-e_a)}{\Delta + \gamma\,(1+0.34u_2)}$"
@@ -49,73 +49,73 @@ def main() -> None:
     y -= 0.16
     add_bullet(fig, 0.11, y, r"$R_n$: net radyasyon")
     y -= 0.036
-    add_bullet(fig, 0.11, y, r"$G$: toprak isi akisi")
+    add_bullet(fig, 0.11, y, r"$G$: toprak ısı akısı")
     y -= 0.036
-    add_bullet(fig, 0.11, y, r"$T$: ortalama sicaklik")
+    add_bullet(fig, 0.11, y, r"$T$: ortalama sıcaklık")
     y -= 0.036
-    add_bullet(fig, 0.11, y, r"$u_2$: 2 m ruzgar hizi")
+    add_bullet(fig, 0.11, y, r"$u_2$: 2 m rüzgar hızı")
     y -= 0.036
-    add_bullet(fig, 0.11, y, r"$e_s-e_a$: buhar basinci acigi")
+    add_bullet(fig, 0.11, y, r"$e_s-e_a$: buhar basıncı açığı")
     y -= 0.036
-    add_bullet(fig, 0.11, y, r"$\Delta$: doygun buhar basinci egrisinin egimi")
+    add_bullet(fig, 0.11, y, r"$\Delta$: doygun buhar basıncı eğrisinin eğimi")
     y -= 0.036
     add_bullet(fig, 0.11, y, r"$\gamma$: psikrometrik sabit")
 
     y -= 0.07
-    add_text(fig, 0.06, y, "2. Bu calismada kullandigimiz sadelestirmeler", 21, "bold")
+    add_text(fig, 0.06, y, "2. Bu çalışmada kullandığımız sadeleştirmeler", 21, "bold")
     y -= 0.048
     fig.text(0.11, y, r"$T = \frac{T_{\max}+T_{\min}}{2}$", ha="left", va="top", fontsize=21, color="#111111", family="DejaVu Serif")
-    add_text(fig, 0.28, y, "Gunluk seride en tutarli ortalama sicaklik tanimi oldugu icin.", 15.5)
+    add_text(fig, 0.28, y, "Günlük seride en tutarlı ortalama sıcaklık tanımı olduğu için.", 15.5)
     y -= 0.058
     fig.text(0.11, y, r"$\Delta = f(T)$", ha="left", va="top", fontsize=21, color="#111111", family="DejaVu Serif")
-    add_text(fig, 0.28, y, "Delta dogrudan sicaklik degildir; sicakliktan fiziksel denklemle turetilir.", 15.5)
+    add_text(fig, 0.28, y, "Delta doğrudan sıcaklık değildir; sıcaklıktan fiziksel denklemle türetilir.", 15.5)
     y -= 0.058
     fig.text(0.11, y, r"$G = 0$", ha="left", va="top", fontsize=21, color="#111111", family="DejaVu Serif")
-    add_text(fig, 0.28, y, "Gunluk ET0 hesabinda standart ve savunulabilir kabul oldugu icin.", 15.5)
+    add_text(fig, 0.28, y, "Günlük ET0 hesabında standart ve savunulabilir kabul olduğu için.", 15.5)
     y -= 0.058
     fig.text(0.11, y, r"$u_2 = 2.0\ \mathrm{m\,s^{-1}}$", ha="left", va="top", fontsize=21, color="#111111", family="DejaVu Serif")
-    add_text(fig, 0.28, y, "Uzun donem kesintisiz ruzgar serisi olmadigi icin sabit fallback kullandik.", 15.5)
+    add_text(fig, 0.28, y, "Uzun dönem kesintisiz rüzgar serisi olmadığı için sabit fallback kullandık.", 15.5)
     y -= 0.058
     fig.text(0.11, y, r"$R_s$: dogrudan radyasyon dosyasindan", ha="left", va="top", fontsize=18.5, color="#111111", family="DejaVu Serif")
-    add_text(fig, 0.38, y, "Tahmini radyasyon yerine veri temelli girdi kullanmak istedigimiz icin.", 15.5)
+    add_text(fig, 0.38, y, "Tahmini radyasyon yerine veri temelli girdi kullanmak istediğimiz için.", 15.5)
     y -= 0.058
     fig.text(0.11, y, r"$\mathrm{coverage\ fraction} \geq 0.80$", ha="left", va="top", fontsize=18.5, color="#111111", family="DejaVu Serif")
-    add_text(fig, 0.40, y, "Eksik aylarin trendi ve forecasti yapay olarak bozmasini engellemek icin.", 15.5)
+    add_text(fig, 0.40, y, "Eksik ayların trendi ve forecasti yapay olarak bozmasını engellemek için.", 15.5)
 
     y -= 0.085
-    add_text(fig, 0.06, y, "3. Delta neden tek gunluk deger alindi?", 21, "bold")
+    add_text(fig, 0.06, y, "3. Delta neden tek günlük değer alındı?", 21, "bold")
     y -= 0.045
-    add_bullet(fig, 0.09, y, "Delta sicakliga baglidir; sicaklik gun icinde degistigi icin Delta da degisir.")
+    add_bullet(fig, 0.09, y, "Delta sıcaklığa bağlıdır; sıcaklık gün içinde değiştiği için Delta da değişir.")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Ogleden sonra sicaklik maksimuma yaklastigi icin Delta genelde en yuksek olur.")
+    add_bullet(fig, 0.09, y, "Öğleden sonra sıcaklık maksimuma yaklaştığı için Delta genelde en yüksek olur.")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Ama bu paket gunluk FAO-56 kurdugu icin T = (Tmax + Tmin)/2 uzerinden tek bir gunluk Delta kullandik.")
+    add_bullet(fig, 0.09, y, "Ama bu paket günlük FAO-56 kurduğu için T = (Tmax + Tmin)/2 üzerinden tek bir günlük Delta kullandık.")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Neden: mevcut operasyonel seri 3747 gun, 120 ay ve 10 tam yil olarak gunluk olcekte kuruldu.")
+    add_bullet(fig, 0.09, y, "Neden: mevcut operasyonel seri 3747 gün, 120 ay ve 10 tam yıl olarak günlük ölçekte kuruldu.")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Saatlik sicaklik, nem, ruzgar ve radyasyon birlikte varsa saatlik ET0 hesaplanabilir; bu daha ayrintili bir katmandir.")
+    add_bullet(fig, 0.09, y, "Saatlik sıcaklık, nem, rüzgar ve radyasyon birlikte varsa saatlik ET0 hesaplanabilir; bu daha ayrıntılı bir katmandır.")
 
     y -= 0.075
-    add_text(fig, 0.06, y, "4. 5 yillik ortalama ne ise yarar?", 21, "bold")
+    add_text(fig, 0.06, y, "4. 5 yıllık ortalama ne işe yarar?", 21, "bold")
     y -= 0.045
-    add_bullet(fig, 0.09, y, "Yillik seride kisa donem oynakligi azaltir ve ana yonu gorunur kilar.")
+    add_bullet(fig, 0.09, y, "Yıllık seride kısa dönem oynaklığı azaltır ve ana yönü görünür kılar.")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Aylik seride 60 aylik hareketli ortalama olarak kullanildiginda uzun donem egilimi gosterir.")
+    add_bullet(fig, 0.09, y, "Aylık seride 60 aylık hareketli ortalama olarak kullanıldığında uzun dönem eğilimi gösterir.")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Tek tek sicrama yerine kalici desen degisimine odaklanmayi saglar.")
+    add_bullet(fig, 0.09, y, "Tek tek sıçrama yerine kalıcı desen değişimine odaklanmayı sağlar.")
 
     y -= 0.075
-    add_text(fig, 0.06, y, "5. Grafik olcekleri ve sayisal baglam", 21, "bold")
+    add_text(fig, 0.06, y, "5. Grafik ölçekleri ve sayısal bağlam", 21, "bold")
     y -= 0.045
-    add_bullet(fig, 0.09, y, "Aylik grafik: 1995-2004 arasindaki aylik ET0 serisi")
+    add_bullet(fig, 0.09, y, "Aylık grafik: 1995-2004 arasındaki aylık ET0 serisi")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "Yillik grafik: her yilin toplam ET0 degeri ve 5 yillik hareketli ortalama")
+    add_bullet(fig, 0.09, y, "Yıllık grafik: her yılın toplam ET0 değeri ve 5 yıllık hareketli ortalama")
     y -= 0.04
-    add_bullet(fig, 0.09, y, "10 yillik ozet: 1995-2004 penceresinin ortalama aylik deseni")
+    add_bullet(fig, 0.09, y, "10 yıllık özet: 1995-2004 penceresinin ortalama aylık deseni")
     y -= 0.04
-    add_bullet(fig, 0.09, y, f"Ortalama yillik ET0: {hist['et0_mm_year_mean']:.1f} mm/yil | trend: {hist['trend_mm_per_decade']:+.1f} mm/10 yil")
+    add_bullet(fig, 0.09, y, f"Ortalama yıllık ET0: {hist['et0_mm_year_mean']:.1f} mm/yıl | trend: {hist['trend_mm_per_decade']:+.1f} mm/10 yıl")
     y -= 0.04
-    add_bullet(fig, 0.09, y, f"Radyasyon gunleri: real_extracted={rad['real_extracted_days']} | synthetic={rad['synthetic_days']}")
+    add_bullet(fig, 0.09, y, f"Radyasyon günleri: real_extracted={rad['real_extracted_days']} | synthetic={rad['synthetic_days']}")
 
     y -= 0.075
     if "baraj" in lower_label:

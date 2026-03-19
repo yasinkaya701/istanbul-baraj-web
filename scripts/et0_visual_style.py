@@ -161,16 +161,16 @@ def render_et0_panel(
     )
     reading_lines = [
         "- Enerji terimi: net enerji etkisi.",
-        "- Aerodinamik terim: ruzgar + kuruluk etkisi.",
+        "- Aerodinamik terim: rüzgar + kuruluk etkisi.",
         "- Payda: iki etkiyi dengeler.",
     ]
     term_lines = [
         "- Rn: net enerji.",
-        "- Delta: sicaklik duyarliligi.",
-        "- es-ea: hava kuruluk acigi.",
-        "- u2: 2 m ruzgar hizi.",
+        "- Delta: sıcaklık duyarlılığı.",
+        "- es-ea: hava kuruluk açığı.",
+        "- u2: 2 m rüzgar hızı.",
         "- gamma: denge sabiti.",
-        "- G: gunlukte 0 alindi.",
+        "- G: günlükte 0 alındı.",
     ]
     assumption_body = "\n".join(f"- {line}" for line in assumption_lines[:4])
     reading_body = "\n".join(reading_lines)
@@ -213,7 +213,7 @@ def render_et0_panel(
         0.565,
         0.92,
         0.115,
-        "Formul Nasil Okunur",
+        "Formül Nasıl Okunur",
         reading_body,
         colors=colors,
         facecolor=colors["card_blue"],
@@ -225,7 +225,7 @@ def render_et0_panel(
         0.39,
         0.92,
         0.145,
-        "Terimler Ne Ise Yarar",
+        "Terimler Ne İşe Yarar",
         term_body,
         colors=colors,
         facecolor=colors["card_soft"],
@@ -273,8 +273,8 @@ def build_formula_card(out_path: Path) -> None:
         0.885,
         0.92,
         0.085,
-        "Tarimsal ET0 Formul Rehberi",
-        "Referans yuzey: iyi sulanmis kisa cimen\nZaman adimi: gunluk",
+        "ET0 Formül Rehberi",
+        "Referans yüzey: iyi sulanmış kısa çimen\nZaman adımı: günlük",
         colors=colors,
         facecolor=colors["card_alt"],
         title_size=12.8,
@@ -287,7 +287,7 @@ def build_formula_card(out_path: Path) -> None:
         0.92,
         0.17,
         "FAO-56 Penman-Monteith",
-        "Bu formul gunluk referans evapotranspirasyonu (ET0) verir.",
+        "Bu formül günlük referans evapotranspirasyonu (ET0) verir.",
         colors=colors,
         facecolor=colors["card_bg"],
         formula=formula,
@@ -300,13 +300,13 @@ def build_formula_card(out_path: Path) -> None:
         0.515,
         0.92,
         0.145,
-        "Formul Nasil Okunur",
+        "Formül Nasıl Okunur",
         "\n".join(
             [
                 "- Enerji terimi: net radyasyonun ET etkisi.",
-                "- Aerodinamik terim: ruzgar + kuruluk etkisi.",
-                "- Payda: iki mekanizmayi dengeler.",
-                "- Sonuc: ET0 mm/gun olarak cikar.",
+                "- Aerodinamik terim: rüzgar + kuruluk etkisi.",
+                "- Payda: iki mekanizmayı dengeler.",
+                "- Sonuç: ET0 mm/gün olarak çıkar.",
             ]
         ),
         colors=colors,
@@ -319,15 +319,15 @@ def build_formula_card(out_path: Path) -> None:
         0.31,
         0.92,
         0.175,
-        "Terimler Ne Ise Yarar",
+        "Terimler Ne İşe Yarar",
         "\n".join(
             [
-                "- Rn: ET icin kullanilabilir net enerji.",
-                "- Delta: sicakligin buharlasma hassasiyeti.",
-                "- es-ea: havanin kuruluk acigi.",
-                "- u2: 2 m ruzgar hizi.",
+                "- Rn: ET için kullanılabilir net enerji.",
+                "- Delta: sıcaklığın buharlaşma hassasiyeti.",
+                "- es-ea: havanın kuruluk açığı.",
+                "- u2: 2 m rüzgar hızı.",
                 "- gamma: enerji ve hava terimini dengeler.",
-                "- G: zemine giden isi; gunlukte 0 alinir.",
+                "- G: zemine giden ısı; günlükte 0 alınır.",
             ]
         ),
         colors=colors,
@@ -343,11 +343,11 @@ def build_formula_card(out_path: Path) -> None:
         "Kabuller ve Nedenleri",
         "\n".join(
             [
-                "- Tmean = (Tmax + Tmin) / 2 -> veriyle en tutarli ozet.",
-                "- Delta = f(Tmean) -> Delta, Tmean'in kendisi degil.",
-                "- G = 0 -> gunluk ET0 icin standart kabul.",
-                "- u2 = 2.0 m/s -> eksik ruzgar icin fallback.",
-                "- Rs dosyadan gelir -> net radyasyonun ana girdisi.",
+                "- Tmean = (Tmax + Tmin) / 2 → veriyle en tutarlı özet.",
+                "- Delta = f(Tmean) → Delta, Tmean’in kendisi değil.",
+                "- G = 0 → günlük ET0 için standart kabul.",
+                "- u2 = 2.0 m/s → eksik rüzgar için fallback.",
+                "- Rs dosyadan gelir → net radyasyonun ana girdisi.",
             ]
         ),
         colors=colors,
@@ -360,8 +360,8 @@ def build_formula_card(out_path: Path) -> None:
         0.02,
         0.92,
         0.08,
-        "Ne Ise Yarar",
-        "- Sulama ihtiyacini tahmin eder.\n- ETc = Kc * ET0 hesabinin temelidir.",
+        "Ne İşe Yarar",
+        "- Buharlaşma talebini temsil eder.\n- ET0, su dengesi ve ETc hesaplarının temelidir.",
         colors=colors,
         facecolor=colors["card_red"],
         body_size=8.8,

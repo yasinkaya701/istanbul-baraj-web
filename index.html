@@ -538,13 +538,13 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
         <div class="card">
           <h4>Akademik Yöntem Notu</h4>
           <p class="note">Simülasyon, baz projeksiyonun aylık doluluk değişimini (<em>ΔS</em>) iklim su dengesi ve kullanım etkileriyle lineer olarak günceller. İklim etkisi, 2010–2040 aylık iklim su dengesi verisi ile doluluk değişimi arasındaki kalibrasyon katsayısı (<em>k</em>) üzerinden hesaplanır.</p>
-          <pre class="formula">ΔS′ = ΔS + k·(ΔP − ΔET0) + c_use·ΔU + c_use·φ·ΔE</pre>
+          <p class="note">Buharlaşma etkisi ET0 bileşeni içinde modellenir; ayrıca ayrı bir terim olarak eklenmez.</p>
+          <pre class="formula">ΔS′ = ΔS + k_m·(ΔP − ΔET0) + c_use·ΔU</pre>
           <div class="sim-params">
-            <div>k (mm → doluluk puanı): <strong id="param-k">—</strong></div>
+            <div>k_m (mm → doluluk puanı, aylık): <strong id="param-k">—</strong></div>
             <div>c_use (1 m³ → doluluk puanı): <strong id="param-cuse">—</strong></div>
             <div>Ortalama yağış (mm/ay): <strong id="param-mean-rain">—</strong></div>
             <div>Ortalama ET0 (mm/ay): <strong id="param-mean-et0">—</strong></div>
-            <div>φ (buharlaşma katsayısı): <strong id="param-phi">0.60</strong></div>
           </div>
           <p class="note" id="sim-sources"></p>
         </div>
@@ -727,8 +727,8 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
 
     function getSeries(model, rain, et0, useM3, evapM3, useGrowth) {
       const coeff = window.SIM_COEFFS || { a_rain: 0.0003, b_et0: -0.0009, c_use: -3e-8, mean_rain: 70, mean_et0: 80, mean_use_monthly: 2.7e6 };
-      const kBalance = coeff.k_balance_mm_to_fill ?? 0.06;
-      const base = (modelData[model] || []).filter(d => d.date >= '2024-03-01');
+        const kDefault = coeff.k_balance_mm_to_fill ?? 0.03;
+        const base = (modelData[model] || []).filter(d => d.date >= '2024-03-01');
       const usageProfile = (window.USAGE_PROFILE && window.USAGE_PROFILE.profile) ? window.USAGE_PROFILE.profile : null;
       const startDate = base[0] ? new Date(base[0].date) : null;
       const baseUseMonthly = (window.BASELINE ? window.BASELINE.usage_baraj_m3 : 275104161) / 12.0;
@@ -757,12 +757,14 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
         const precip = climate ? climate.precip_mm_month : (coeff.mean_rain ?? 0);
         const et0Base = climate ? climate.et0_mm_month : (coeff.mean_et0 ?? 0);
         const deltaWaterBalance = (precip * (rain / 100)) - (et0Base * (et0 / 100));
-        const climateEff = kBalance * deltaWaterBalance;
+        const kMonth = coeff.k_by_month && coeff.k_by_month[String(m + 1)] !== undefined
+          ? coeff.k_by_month[String(m + 1)]
+          : kDefault;
+        const climateEff = kMonth * deltaWaterBalance;
 
         const useEff = coeff.c_use * (useMonthly - baseUseMonthly);
-        const evapEff = coeff.c_use * 0.6 * (evapMonthly - baseEvapMonthly);
 
-        const next = Math.max(0, Math.min(100, prevAdj + baseDelta + climateEff + useEff + evapEff));
+        const next = Math.max(0, Math.min(100, prevAdj + baseDelta + climateEff + useEff));
         prevAdj = next;
         return { date: d.date, fill: next };
       });
@@ -982,8 +984,18 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
       const cUseEl = document.getElementById('param-cuse');
       const meanRainEl = document.getElementById('param-mean-rain');
       const meanEt0El = document.getElementById('param-mean-et0');
-      if (kEl && coeff.k_balance_mm_to_fill !== undefined) {
-        kEl.textContent = `${coeff.k_balance_mm_to_fill.toFixed(4)} puan/mm`;
+      if (kEl) {
+        if (coeff.k_by_month) {
+          const vals = Object.values(coeff.k_by_month);
+          if (vals.length) {
+            const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+            const min = Math.min(...vals);
+            const max = Math.max(...vals);
+            kEl.textContent = `${avg.toFixed(4)} (min ${min.toFixed(4)}, max ${max.toFixed(4)})`;
+          }
+        } else if (coeff.k_balance_mm_to_fill !== undefined) {
+          kEl.textContent = `${coeff.k_balance_mm_to_fill.toFixed(4)} puan/mm`;
+        }
       }
       if (cUseEl && coeff.c_use !== undefined) {
         cUseEl.textContent = `${(coeff.c_use * 1e6).toFixed(4)} puan / (10^6 m3)`;

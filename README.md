@@ -19,8 +19,12 @@ Hackhaton/
 |-- dashboard/                      # Paneller icin frontend + server
 |-- scripts/                        # Modelleme, veri hazirlama ve analiz akislari
 |-- research/                       # Arastirma hub, loglar ve template'ler
-|-- baraj_web/                      # Web uygulamasi (ayri git repo)
-|-- external/ArtikongrafConverter/  # Harici arac (ayri git repo)
+|-- baraj_web/                      # Statik web sunumu
+|-- external/ArtikongrafConverter/  # Harici arac (entegre)
+|-- index.html                      # Legacy web sunumu (kok)
+|-- assets/                         # Legacy web sunumu asset'leri
+|-- styles.css                      # Legacy web sunumu stil dosyasi
+|-- netlify.toml                    # Legacy web sunumu deploy ayari
 |-- hackhaton_model_kartlari_2026_03_18/  # Model kartlari (gorsel)
 |-- hackhaton_projection_2040_2026_03_18/ # Projeksiyon gorselleri
 |-- ADVERSARIAL_TEST/               # Test goruntuleri (git disi)
@@ -29,6 +33,7 @@ Hackhaton/
 |-- new data/                       # Yerel veri setleri (git disi)
 |-- output/                         # Uretilen ciktilar (git disi)
 |-- tmp/                            # Gecici dosyalar (git disi)
+|-- baraj_web/assets/data/          # Uretilen veri (git disi)
 ```
 
 ## Icerik ozeti
@@ -37,24 +42,56 @@ Hackhaton/
 - Log, template ve sentez notlari ile arastirma hub yapisi
 - Model kartlari ve projeksiyon gorselleri
 
-## Kullanim dokumanlari
-- `MODEL_DECISION_DASHBOARD_KULLANIM.md`
-- `MODEL_SUITE_KULLANIM.md`
-- `ET_ML_KULLANIM.md`
-- `PROPHET_KULLANIM.md`
-- `STRONG_MODEL_KULLANIM.md`
-- `SOLAR_MODEL_LITERATURE.md`
+## Web sunumu
+- Tercih edilen sunum: `baraj_web/index.html`
+- Legacy sunum (kok dizin): `index.html`
+- Basit statik sunucu icin:
+```bash
+cd baraj_web
+python -m http.server 8000
+```
+Sonra `http://localhost:8000`.
+
+## Rapor ve ET0 yeniden uretim
+### PDF raporlar
+```bash
+python scripts/build_istanbul_current_status_pdf.py
+python scripts/build_istanbul_current_status_detailed_pdf.py
+python scripts/build_hackathon_final_pdf_report.py
+```
+
+### ET0 paket (gercek radyasyon)
+```bash
+python scripts/build_es_ea_newdata_csv.py \
+  --temp-xlsx "<TEMP_XLSX>" \
+  --humidity-xlsx "<HUMIDITY_XLSX>" \
+  --auto-table1 "<AUTO_TABLE1>" \
+  --auto-table2 "<AUTO_TABLE2>"
+
+python scripts/build_complete_solar_dataset.py
+python scripts/build_tarim_et0_real_radiation_package.py
+python scripts/build_et0_formula_card.py
+python scripts/build_one_year_explained_et0_charts.py --year 2004
+python scripts/build_et0_trend_robust_chart.py
+python scripts/build_et0_multiscale_charts.py
+```
 
 ## Veri notu
 Veri setleri bilerek git disinda tutulur. Yerel verileri su dizinlere koy:
 - `DATA/`
 - `new data/`
+- `baraj_web/assets/data/`
 
 Yaygin veri formatlari (ornegin `*.csv`, `*.parquet`, `*.xlsx`, `*.pkl`) `.gitignore` ile disarida tutulur.
 
-## Sub-repo notu
-- `baraj_web/` ve `external/ArtikongrafConverter/` icerikleri bu repoda tutulur.
-  Eski git metadata yedekleri yerel olarak `.git_backup/` altinda saklanir ve git disindadir.
+## Veri kaynaklari (ozet)
+- IBB/ISKI baraj doluluk ve havza yagisi
+- IBB tuketim verileri
+- Kandilli uzun donem iklim serileri
+- Iklim projeksiyonlari (2026-2040)
+
+## Repo notu
+- Onceki alt repolar birlestirildi. Eski git metadata yedekleri yerel olarak `.git_backup/` altinda saklanir ve git disindadir.
 
 ## Konvansiyonlar
 - Buyuk binary ve uretilen ciktilari git disinda tut

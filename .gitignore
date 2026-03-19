@@ -11,6 +11,7 @@ __pycache__/
 
 # Tooling outputs
 .playwright-cli/
+.netlify/
 
 # Large datasets / generated data
 DATA/
@@ -21,6 +22,7 @@ tmp/
 catboost_info/
 ADVERSARIAL_TEST/
 DESKTOP_PROCESSING/
+baraj_web/assets/data/
 
 # Large single outputs
 /tmp_2010_MAYIS-02.png

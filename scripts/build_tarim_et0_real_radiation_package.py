@@ -247,10 +247,10 @@ def plot_history(
     d = d.set_index("date").sort_index()
 
     fig, ax = plt.subplots(figsize=(12.5, 5.8))
-    ax.plot(d.index, d["et0_mm_day"], color="#d97b29", linewidth=0.55, alpha=0.25, label="Gunluk ET0")
-    ax.plot(d.index, d["et0_mm_day"].rolling(30, min_periods=10).mean(), color="#8d3b0d", linewidth=1.8, label="30 gun ort.")
-    ax.set_title(f"Gunluk {label} ET0")
-    ax.set_ylabel("ET0 (mm/gun)")
+    ax.plot(d.index, d["et0_mm_day"], color="#d97b29", linewidth=0.55, alpha=0.25, label="Günlük ET0")
+    ax.plot(d.index, d["et0_mm_day"].rolling(30, min_periods=10).mean(), color="#8d3b0d", linewidth=1.8, label="30 gün ort.")
+    ax.set_title(f"Günlük {label} ET0")
+    ax.set_ylabel("ET0 (mm/gün)")
     ax.legend()
     fig.tight_layout()
     fig.savefig(charts_dir / f"{prefix}_daily_history.png", dpi=130, bbox_inches="tight")
@@ -259,9 +259,9 @@ def plot_history(
     m = monthly.copy()
     m["date"] = pd.to_datetime(m["date"])
     fig, ax = plt.subplots(figsize=(12.5, 5.8))
-    ax.plot(m["date"], m["et0_mm_month"], color="#a44a3f", linewidth=0.9, alpha=0.45, label="Aylik ET0")
+    ax.plot(m["date"], m["et0_mm_month"], color="#a44a3f", linewidth=0.9, alpha=0.45, label="Aylık ET0")
     ax.plot(m["date"], m["et0_mm_month"].rolling(12, min_periods=6).mean(), color="#5d1f1f", linewidth=2.0, label="12 ay ort.")
-    ax.set_title(f"Aylik {label} ET0")
+    ax.set_title(f"Aylık {label} ET0")
     ax.set_ylabel("ET0 (mm/ay)")
     ax.legend()
     fig.tight_layout()
@@ -274,8 +274,8 @@ def plot_history(
     fig, ax = plt.subplots(figsize=(12.5, 5.8))
     ax.bar(y["year"], y["et0_mm_year"], color="#5b8e7d", width=0.9, alpha=0.85)
     ax.plot(y["year"], trend, color="#1d3557", linewidth=2.0, label=f"Trend: {coef[0] * 10.0:+.1f} mm/10y")
-    ax.set_title(f"Yillik {label} ET0")
-    ax.set_ylabel("ET0 (mm/yil)")
+    ax.set_title(f"Yıllık {label} ET0")
+    ax.set_ylabel("ET0 (mm/yıl)")
     ax.legend()
     fig.tight_layout()
     fig.savefig(charts_dir / f"{prefix}_yearly_trend.png", dpi=130, bbox_inches="tight")
@@ -357,10 +357,10 @@ def plot_forecast(forecast_df: pd.DataFrame, charts_dir: Path, label: str, prefi
     ax.plot(hist["date"], hist["actual"], color="#4c6a92", linewidth=0.8, alpha=0.35, label="Tarihsel ET0")
     ax.plot(hist["date"], hist["yhat"], color="#1d3557", linewidth=1.6, label="Model uyumu")
     if not fc.empty:
-        ax.plot(fc["date"], fc["yhat"], color="#d1495b", linewidth=2.0, label="Quant oengoru")
+        ax.plot(fc["date"], fc["yhat"], color="#d1495b", linewidth=2.0, label="Quant öngörü")
         if {"yhat_lower", "yhat_upper"}.issubset(fc.columns):
-            ax.fill_between(fc["date"], fc["yhat_lower"], fc["yhat_upper"], color="#d1495b", alpha=0.18, label="Guven bandi")
-    ax.set_title(f"{label} ET0 Quant Oengoru")
+            ax.fill_between(fc["date"], fc["yhat_lower"], fc["yhat_upper"], color="#d1495b", alpha=0.18, label="Güven bandı")
+    ax.set_title(f"{label} ET0 Quant Öngörü")
     ax.set_ylabel("ET0 (mm/ay)")
     ax.legend()
     fig.tight_layout()
@@ -440,45 +440,45 @@ def write_report(
     rad = summary["radiation_input"]
 
     lines = [
-        f"# {label} ET0 - Gercek Radyasyon Girdili Paket",
+        f"# {label} ET0 - Gerçek Radyasyon Girdili Paket",
         "",
-        "## Kullandigim Radyasyon Dosyasi",
+        "## Kullandığımız Radyasyon Dosyası",
         "",
         f"- Dosya: `{rad['file']}`",
-        f"- Gunluk veri kapsami: `{summary['coverage']['daily_start']}` -> `{summary['coverage']['daily_end']}`",
-        f"- Model kapsami: `{summary['coverage']['model_start']}` -> `{summary['coverage']['model_end']}`",
-        f"- `real_extracted` gun: `{rad['real_extracted_days']}`",
-        f"- `synthetic` gun: `{rad['synthetic_days']}`",
+        f"- Günlük veri kapsamı: `{summary['coverage']['daily_start']}` -> `{summary['coverage']['daily_end']}`",
+        f"- Model kapsamı: `{summary['coverage']['model_start']}` -> `{summary['coverage']['model_end']}`",
+        f"- `real_extracted` gün: `{rad['real_extracted_days']}`",
+        f"- `synthetic` gün: `{rad['synthetic_days']}`",
         "",
-        "Bu dosya kullanicinin verdigi radyasyon girdisi olarak dogrudan ET0 hesabina sokuldu.",
-        "Not: dosya icindeki `data_source` kolonu korunmustur; yani hangi gunun gercek cikarim, hangisinin sentetik doldurma oldugu tabloda goruluyor.",
+        "Bu dosya kullanıcının verdiği radyasyon girdisi olarak doğrudan ET0 hesabına sokuldu.",
+        "Not: Dosya içindeki `data_source` kolonu korunmuştur; yani hangi günün gerçek çıkarım, hangisinin sentetik doldurma olduğu tabloda görülür.",
         "",
         "## Kabuller",
         "",
-        "1. `Tmean = (Tmax + Tmin) / 2` kullanildi.",
-        "2. `Delta`, Tmean uzerinden FAO-56 egri egimiyle hesaplandi.",
-        "3. `G = 0` alindi.",
-        "4. `u2 = 2.0 m/s` sabit ruzgar kullanildi.",
-        "5. Basinc rakimdan sabit turetildi.",
-        "6. Radyasyon olarak kullanicinin verdigi gunluk seri kullanildi.",
-        "7. Aylik modelde sadece en az %80 gun kapsamasina sahip aylar kullanildi.",
-        "8. Gelecek oengorusu ET0 serisinin kendisi uzerinden quant model ile yapildi.",
+        "1. `Tmean = (Tmax + Tmin) / 2` kullanıldı.",
+        "2. `Delta`, Tmean üzerinden FAO-56 eğri eğimiyle hesaplandı.",
+        "3. `G = 0` alındı.",
+        "4. `u2 = 2.0 m/s` sabit rüzgar kullanıldı.",
+        "5. Basınç rakımdan sabit türetildi.",
+        "6. Radyasyon olarak kullanıcının verdiği günlük seri kullanıldı.",
+        "7. Aylık modelde sadece en az %80 gün kapsamasına sahip aylar kullanıldı.",
+        "8. Gelecek öngörüsü ET0 serisinin kendisi üzerinden quant model ile yapıldı.",
         "",
         "## Temel Bulgular",
         "",
-        f"- Ortalama yillik ET0: `{hist['et0_mm_year_mean']:.1f} mm/yil`",
-        f"- Yillik ET0 trendi: `{hist['trend_mm_per_decade']:+.1f} mm/10y`",
-        f"- Min yillik ET0: `{hist['et0_mm_year_min']:.1f} mm/yil`",
-        f"- Max yillik ET0: `{hist['et0_mm_year_max']:.1f} mm/yil`",
-        f"- Baz donem ({fc['baseline_year_range']}) ortalama yillik ET0: `{fc['baseline_mm_year']:.1f} mm/yil`",
-        f"- 2031-2035 quant oengoru ortalama yillik ET0: `{fc['forecast_2031_2035_mm_year']:.1f} mm/yil`",
-        f"- Beklenen fark: `{fc['delta_2031_2035_vs_baseline_mm_year']:+.1f} mm/yil`",
+        f"- Ortalama yıllık ET0: `{hist['et0_mm_year_mean']:.1f} mm/yıl`",
+        f"- Yıllık ET0 trendi: `{hist['trend_mm_per_decade']:+.1f} mm/10y`",
+        f"- Min yıllık ET0: `{hist['et0_mm_year_min']:.1f} mm/yıl`",
+        f"- Max yıllık ET0: `{hist['et0_mm_year_max']:.1f} mm/yıl`",
+        f"- Baz dönem ({fc['baseline_year_range']}) ortalama yıllık ET0: `{fc['baseline_mm_year']:.1f} mm/yıl`",
+        f"- 2031-2035 quant öngörü ortalama yıllık ET0: `{fc['forecast_2031_2035_mm_year']:.1f} mm/yıl`",
+        f"- Beklenen fark: `{fc['delta_2031_2035_vs_baseline_mm_year']:+.1f} mm/yıl`",
         "",
-        "## Uretilen Dosyalar",
+        "## Üretilen Dosyalar",
         "",
-        f"- Gunluk ET0: `{daily_csv}`",
-        f"- Aylik ET0: `{monthly_csv}`",
-        f"- Yillik ET0: `{yearly_csv}`",
+        f"- Günlük ET0: `{daily_csv}`",
+        f"- Aylık ET0: `{monthly_csv}`",
+        f"- Yıllık ET0: `{yearly_csv}`",
         f"- Quant forecast: `{forecast_csv}`",
         f"- Grafikler: `{charts_dir}`",
         "",

@@ -108,7 +108,7 @@ Yaygın veri formatları (ör. `*.csv`, `*.parquet`, `*.xlsx`, `*.pkl`) `.gitign
 - HEC USACE Penman-Monteith yöntemi: [hec.usace.army.mil](https://www.hec.usace.army.mil/confluence/hmsdocs/hmstrm/evaporation-and-transpiration/penman-monteith-method)
 - 2023 su kullanımı haber kaynağı: [aa.com.tr](https://www.aa.com.tr/tr/gundem/istanbulda-gecen-yil-1-milyar-117-milyon-64-bin-116-metrekup-su-kullanildi/3104905)
 - Forecasting: Principles and Practice (FPP3): [otexts.com/fpp3](https://otexts.com/fpp3/)
-- Detaylı ve tam bağlantı listesi: `REFERENCES.md`
+- Detaylı ve tam bağlantı listesi: [REFERENCES.md](REFERENCES.md)
 
 ## Repo notu
 - Önceki alt repolar birleştirildi. Eski git metadata yedekleri yerel olarak `.git_backup/` altında saklanır ve git dışındadır.

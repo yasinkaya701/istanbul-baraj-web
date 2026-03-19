@@ -103,17 +103,39 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
           </ul>
         </div>
         <div class="card">
-          <h3>Bu Projede ET0 Akışı</h3>
-          <div class="flow">
-            <div class="flow-step"><span>1</span> <div>Panel verisi (2000–2026 iklim sürücüleri): <code>rain_mm, et0_mm_month, t_mean_c, rh_mean_pct, pressure_kpa</code></div></div>
-            <div class="flow-step"><span>2</span> <div>Doluluk gözlemi (2000–2024): <code>weighted_total_fill</code></div></div>
-            <div class="flow-step"><span>3</span> <div>2027–2040 iklim projeksiyonu: <code>rain_mm, et0_mm_month, t_mean_c, rh_mean_pct</code></div></div>
-            <div class="flow-step"><span>4</span> <div>Eksik değerler aylık klimatoloji ile doldurulur</div></div>
-            <div class="flow-step"><span>5</span> <div>VPD hesaplanır: <code>VPD = es − ea</code> (T ve RH’den)</div></div>
-            <div class="flow-step"><span>6</span> <div>Model özellikleri: değişim (delta), gecikme (lag), 3–6 aylık ortalama</div></div>
+          <h3>Yıllık Özet (Hesaplanan)</h3>
+          <div class="stat-grid">
+            <div class="stat">
+              <small>Ortalama (1975–2004)</small>
+              <strong>945.9 mm/yıl</strong>
+            </div>
+            <div class="stat">
+              <small>Min / Maks</small>
+              <strong>882.6 – 1071.1 mm/yıl</strong>
+            </div>
+            <div class="stat">
+              <small>Trend</small>
+              <strong>+25.1 mm / 10 yıl</strong>
+            </div>
+            <div class="stat">
+              <small>Baz (1995–2004)</small>
+              <strong>970.6 mm/yıl</strong>
+            </div>
+            <div class="stat">
+              <small>2031–2035 Tahmin</small>
+              <strong>1030.2 mm/yıl</strong>
+            </div>
+            <div class="stat">
+              <small>Fark (2031–2035)</small>
+              <strong>+59.6 mm/yıl</strong>
+            </div>
           </div>
-          <pre class="formula">es = 0.6108 · exp((17.27 · T) / (T + 237.3))   |   ea = es · (RH/100)</pre>
-          <p class="note">ET0, panelde aylık olarak bulunur. Günlük ET0 hesaplaması gerekiyorsa, FAO‑56 formülü kullanılabilir.</p>
+          <ul class="link-list">
+            <li><a href="assets/et0/tarim_et0_yearly_trend_robust_explained.png" target="_blank" rel="noopener">Yıllık trend grafiği (robust)</a></li>
+            <li><a href="assets/et0/tarim_et0_10year_summary.png" target="_blank" rel="noopener">10 yıllık özet grafiği</a></li>
+            <li><a href="assets/et0/tarim_et0_quant_forecast.png" target="_blank" rel="noopener">Quant forecast grafiği</a></li>
+          </ul>
+          <p class="note">Kaynaklar: <a href="assets/et0/reports/tarim_et0_real_radiation_summary.json" target="_blank" rel="noopener">ET0 özet JSON</a> · <a href="assets/et0/reports/tarim_et0_method_note_tr.md" target="_blank" rel="noopener">Yöntem notu</a></p>
         </div>
       </div>
     </section>
@@ -123,33 +145,45 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
       <p class="note">Bu bölüm, daha önce hazırlanan ET0 paketinden gelen açıklayıcı grafik ve yöntem notlarını içerir.</p>
       <div class="grid three">
         <figure class="card">
-          <img src="assets/et0/tarim_et0_formula_explained.png" alt="ET0 formül açıklaması" />
+          <a href="assets/et0/tarim_et0_formula_explained.png" target="_blank" rel="noopener">
+            <img src="assets/et0/tarim_et0_formula_explained.png" alt="ET0 formül açıklaması" />
+          </a>
           <figcaption>FAO‑56 Penman‑Monteith Formülü</figcaption>
         </figure>
         <figure class="card">
-          <img src="assets/et0/tarim_et0_monthly_explained_2004.png" alt="ET0 aylık açıklamalı örnek" />
+          <a href="assets/et0/tarim_et0_monthly_explained_2004.png" target="_blank" rel="noopener">
+            <img src="assets/et0/tarim_et0_monthly_explained_2004.png" alt="ET0 aylık açıklamalı örnek" />
+          </a>
           <figcaption>Aylık ET0 (2004 açıklamalı)</figcaption>
         </figure>
         <figure class="card">
-          <img src="assets/et0/tarim_et0_yearly_trend_robust_explained.png" alt="ET0 yıllık trend" />
+          <a href="assets/et0/tarim_et0_yearly_trend_robust_explained.png" target="_blank" rel="noopener">
+            <img src="assets/et0/tarim_et0_yearly_trend_robust_explained.png" alt="ET0 yıllık trend" />
+          </a>
           <figcaption>Yıllık ET0 Trend (Robust)</figcaption>
         </figure>
         <figure class="card">
-          <img src="assets/et0/tarim_et0_quant_forecast.png" alt="ET0 quant forecast" />
+          <a href="assets/et0/tarim_et0_quant_forecast.png" target="_blank" rel="noopener">
+            <img src="assets/et0/tarim_et0_quant_forecast.png" alt="ET0 quant forecast" />
+          </a>
           <figcaption>ET0 Quant Forecast</figcaption>
         </figure>
         <figure class="card">
-          <img src="assets/et0/tarim_et0_10year_summary.png" alt="ET0 10 yıllık özet" />
+          <a href="assets/et0/tarim_et0_10year_summary.png" target="_blank" rel="noopener">
+            <img src="assets/et0/tarim_et0_10year_summary.png" alt="ET0 10 yıllık özet" />
+          </a>
           <figcaption>10 Yıllık Özet</figcaption>
         </figure>
         <figure class="card">
-          <img src="assets/et0/tarim_et0_monthly_5y_mean.png" alt="ET0 aylık 5y ortalama" />
+          <a href="assets/et0/tarim_et0_monthly_5y_mean.png" target="_blank" rel="noopener">
+            <img src="assets/et0/tarim_et0_monthly_5y_mean.png" alt="ET0 aylık 5y ortalama" />
+          </a>
           <figcaption>Aylık 5y Ortalama</figcaption>
         </figure>
       </div>
       <div class="card">
-        <p><strong>Yöntem Notu:</strong> <code>assets/et0/reports/tarim_et0_method_note_tr.md</code></p>
-        <p><strong>Özet:</strong> <code>assets/et0/reports/tarim_et0_real_radiation_summary.json</code></p>
+        <p><strong>Yöntem Notu:</strong> <a href="assets/et0/reports/tarim_et0_method_note_tr.md" target="_blank" rel="noopener">tarim_et0_method_note_tr.md</a></p>
+        <p><strong>Özet:</strong> <a href="assets/et0/reports/tarim_et0_real_radiation_summary.json" target="_blank" rel="noopener">tarim_et0_real_radiation_summary.json</a></p>
       </div>
     </section>
 

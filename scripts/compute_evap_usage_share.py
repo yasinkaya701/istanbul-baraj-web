@@ -62,7 +62,7 @@ def main():
         "evap_share": evap_share,
         "usage_share": usage_share,
         "sources": {
-            "surface_area": "https://www.ibb.istanbul/ibb/belediye-hakkinda/yetki-alani/",
+            "catchment_area": "https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari",
             "kc_open_water": "https://www.wcc.nrcs.usda.gov/ftpref/wntsc/waterMgt/irrigation/fao56.pdf",
             "usage_2023": "https://www.aa.com.tr/tr/gundem/istanbulda-gecen-yil-1-milyar-117-milyon-64-bin-116-metrekup-su-kullanildi/3104905",
         },

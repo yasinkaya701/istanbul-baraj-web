@@ -69,20 +69,10 @@ python scripts/build_istanbul_current_status_detailed_pdf.py
 python scripts/build_hackathon_final_pdf_report.py
 ```
 
-### ET0 paket (gerçek radyasyon)
+### ET0 paket (iklim paneli)
+ET0 aylık serisi `assets/data/climate_baseline.js` üzerinden okunur. Özet ve grafik paketi için:
 ```bash
-python scripts/build_es_ea_newdata_csv.py \
-  --temp-xlsx "<TEMP_XLSX>" \
-  --humidity-xlsx "<HUMIDITY_XLSX>" \
-  --auto-table1 "<AUTO_TABLE1>" \
-  --auto-table2 "<AUTO_TABLE2>"
-
-python scripts/build_complete_solar_dataset.py
-python scripts/build_tarim_et0_real_radiation_package.py
-python scripts/build_et0_formula_card.py
-python scripts/build_one_year_explained_et0_charts.py --year 2004
-python scripts/build_et0_trend_robust_chart.py
-python scripts/build_et0_multiscale_charts.py
+python scripts/build_baraj_et0_panel_package.py
 ```
 
 ## Veri notu
@@ -95,7 +85,7 @@ Yaygın veri formatları (ör. `*.csv`, `*.parquet`, `*.xlsx`, `*.pkl`) `.gitign
 
 ## Kaynakça (özet)
 - İBB Açık Veri API (CKAN): [data.ibb.gov.tr](https://data.ibb.gov.tr/api/3/action/datastore_search)
-- İBB yetki alanı (havza alanı hesabı): [ibb.istanbul](https://www.ibb.istanbul/ibb/belediye-hakkinda/yetki-alani/)
+- İSKİ su kaynakları (baraj havzaları): [iski.istanbul](https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari)
 - İSKİ baraj doluluk: [iski.istanbul/baraj-doluluk](https://iski.istanbul/baraj-doluluk)
 - İSKİ su kaynakları: [iski.istanbul/su-kaynaklari](https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari)
 - İSKİ su birim fiyatları: [iski.istanbul/su-birim-fiyatlari](https://iski.istanbul/abone-hizmetleri/abone-rehberi/su-birim-fiyatlari/)

@@ -1,41 +1,30 @@
-# Baraj ET0 - Gercek Radyasyon Girdili Paket
+# Baraj ET0 - Iklim Paneli Aylik Seri Paketi
 
-## Kullandigim Radyasyon Dosyasi
+## Veri Kaynagi
 
-- Dosya: `daily_solar_radiation_complete.csv` (ham veri yolu repoda paylasilmiyor)
-- Gunluk veri kapsami: `1975-01-01` -> `2004-12-31`
-- Model kapsami: `1975-01-01` -> `2004-12-01`
-- `real_extracted` gun: `0`
-- `synthetic` gun: `10957`
-
-Bu dosya kullanicinin verdigi radyasyon girdisi olarak dogrudan ET0 hesabina sokuldu.
-Not: dosya icindeki `data_source` kolonu korunmustur; yani hangi gunun gercek cikarim, hangisinin sentetik doldurma oldugu tabloda goruluyor.
+- Dosya: `assets/data/climate_baseline.js`
+- Seri: `et0_mm_month` (aylik)
+- Gozlem kapsami: `2010-01` -> `2024-12`
+- Projeksiyon kapsami: `2026-01` -> `2040-12`
+- Not: 2025 yili panelde yok; projeksiyon 2026'dan baslar.
 
 ## Kabuller
 
-1. `Tmean = (Tmax + Tmin) / 2` kullanildi.
-2. `Delta`, Tmean uzerinden FAO-56 egri egimiyle hesaplandi.
-3. `G = 0` alindi.
-4. `u2 = 2.0 m/s` sabit ruzgar kullanildi.
-5. Basinc rakimdan sabit turetildi.
-6. Radyasyon olarak kullanicinin verdigi gunluk seri kullanildi.
-7. Aylik modelde sadece en az %80 gun kapsamasina sahip aylar kullanildi.
-8. Gelecek oengorusu ET0 serisinin kendisi uzerinden quant model ile yapildi.
+1. ET0 degerleri iklim panelinden hazir alindi; bu rapor ET0'yu yeniden hesaplamaz.
+2. Yillik ET0, ilgili yildaki 12 ayin toplami olarak hesaplandi.
+3. Trend, 2010-2024 yillik toplamlar uzerinde basit dogrusal regresyonla hesaplandi.
 
 ## Temel Bulgular
 
-- Ortalama yillik ET0: `945.9 mm/yil`
-- Yillik ET0 trendi: `+25.1 mm/10y`
-- Min yillik ET0: `882.6 mm/yil`
-- Max yillik ET0: `1071.1 mm/yil`
-- Baz donem (1995-2004) ortalama yillik ET0: `970.6 mm/yil`
-- 2031-2035 quant oengoru ortalama yillik ET0: `1030.2 mm/yil`
-- Beklenen fark: `+59.6 mm/yil`
+- Ortalama yillik ET0 (2010-2024): `1097.6 mm/yil`
+- Yillik ET0 trendi (2010-2024): `+24.5 mm/10y`
+- Min/Max yillik ET0 (2010-2024): `1044.1` - `1160.9 mm/yil`
+- Baz donem (2015-2024) ortalama yillik ET0: `1099.6 mm/yil`
+- 2031-2035 tahmin ortalamasi: `1155.7 mm/yil`
+- Beklenen fark (2031-2035 - baz): `+56.1 mm/yil`
 
-## Uretilen Dosyalar
+## Uretilen Ciktilar
 
-- Gunluk ET0: `baraj_et0_daily_radiation_complete.csv`
-- Aylik ET0: `baraj_et0_monthly_radiation_complete.csv`
-- Yillik ET0: `baraj_et0_yearly_radiation_complete.csv`
-- Quant forecast: `baraj_et0_quant_forecast_to_2035.csv`
-- Grafikler: ET0 paket grafikleri
+- Ozet: `assets/et0/reports/baraj_et0_real_radiation_summary.json`
+- Trend istatistikleri: `assets/et0/reports/baraj_et0_yearly_trend_stats.json`
+- Grafikler: `assets/et0/*.png`

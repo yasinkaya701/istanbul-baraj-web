@@ -13,10 +13,10 @@
       <div class="brand">İstanbul Baraj Projeksiyonu</div>
       <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links">Menü</button>
       <div class="nav-links" id="nav-links">
-        <a href="#kapsam">Kapsam</a>
-        <a href="#et0">ET0</a>
         <a href="#simulasyon">Simülasyon</a>
         <a href="#modeller">Modeller</a>
+        <a href="#kapsam">Kapsam</a>
+        <a href="#et0">ET0</a>
         <a href="#raporlar">Raporlar</a>
       </div>
     </div>
@@ -45,6 +45,10 @@
           <div><small>Toplam ay</small><strong>480+</strong></div>
           <div><small>Projeksiyon</small><strong>2040</strong></div>
           <div><small>Model sayısı</small><strong>5</strong></div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn ghost" href="#simulasyon">Simülasyona Git</a>
+          <a class="btn ghost" href="#modeller">Modellere Git</a>
         </div>
       </div>
     </div>
@@ -88,7 +92,7 @@
 
     <section id="et0">
       <h2>ET0 Nasıl Hesaplanıyor?</h2>
-      <p class="note">ET0 (referans evapotranspirasyon), iklim değişkenlerinden hesaplanır. Bu projede ET0 aylık verisi panelde hazır gelir; eksik aylarda klimatolojik ortalama ile tamamlanır. VPD, sıcaklık ve nemden türetilir.</p>
+      <p class="note">ET0 (referans evapotranspirasyon) bu projede iklim panelinden aylık olarak gelir ve burada yeniden hesaplanmaz. Aşağıdaki formül yalnızca referans amaçlıdır.</p>
       <div class="grid two">
         <div class="card">
           <h3>FAO‑56 Penman‑Monteith (ET0)</h3>
@@ -96,7 +100,7 @@
 ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(1 + 0.34·u2)]
           </pre>
           <ul>
-            <li>ET0: referans evapotranspirasyon (mm/gün)</li>
+            <li>ET0: referans evapotranspirasyon (formül tanımı)</li>
             <li>Rn: net radyasyon, G: toprak ısı akısı</li>
             <li>T: sıcaklık (°C), u2: 2 m rüzgar hızı</li>
             <li>es−ea: buhar basıncı açığı (VPD)</li>
@@ -104,37 +108,36 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
           </ul>
         </div>
         <div class="card">
-          <h3>Yıllık Özet (Hesaplanan)</h3>
+          <h3>Yıllık Özet (Panel ET0)</h3>
           <div class="stat-grid">
             <div class="stat">
-              <small>Ortalama (1975–2004)</small>
-              <strong>945.9 mm/yıl</strong>
+              <small>Ortalama (2010–2024)</small>
+              <strong>1097.6 mm/yıl</strong>
             </div>
             <div class="stat">
               <small>Min / Maks</small>
-              <strong>882.6 – 1071.1 mm/yıl</strong>
+              <strong>1044.1 – 1160.9 mm/yıl</strong>
             </div>
             <div class="stat">
               <small>Trend</small>
-              <strong>+25.1 mm / 10 yıl</strong>
+              <strong>+24.5 mm / 10 yıl</strong>
             </div>
             <div class="stat">
-              <small>Baz (1995–2004)</small>
-              <strong>970.6 mm/yıl</strong>
+              <small>Baz (2015–2024)</small>
+              <strong>1099.6 mm/yıl</strong>
             </div>
             <div class="stat">
               <small>2031–2035 Tahmin</small>
-              <strong>1030.2 mm/yıl</strong>
+              <strong>1155.7 mm/yıl</strong>
             </div>
             <div class="stat">
               <small>Fark (2031–2035)</small>
-              <strong>+59.6 mm/yıl</strong>
+              <strong>+56.1 mm/yıl</strong>
             </div>
           </div>
           <ul class="link-list">
-            <li><a href="assets/et0/baraj_et0_yearly_trend_robust_explained.png" target="_blank" rel="noopener">Yıllık trend grafiği (robust)</a></li>
+            <li><a href="assets/et0/baraj_et0_yearly_trend_robust_explained.png" target="_blank" rel="noopener">Yıllık trend grafiği</a></li>
             <li><a href="assets/et0/baraj_et0_10year_summary.png" target="_blank" rel="noopener">10 yıllık özet grafiği</a></li>
-            <li><a href="assets/et0/baraj_et0_quant_forecast.png" target="_blank" rel="noopener">Quant forecast grafiği</a></li>
           </ul>
           <p class="note">Kaynaklar: <a href="assets/et0/reports/baraj_et0_real_radiation_summary.json" target="_blank" rel="noopener">ET0 özet JSON</a> · <a href="assets/et0/reports/baraj_et0_method_note_tr.md" target="_blank" rel="noopener">Yöntem notu</a></p>
         </div>
@@ -142,32 +145,26 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
     </section>
 
     <section>
-      <h2>ET0 Paket (Gerçek Radyasyon) — Baraj</h2>
-      <p class="note">Bu bölüm, mevcut ET0 paketindeki grafiklerin baraj odaklı kopyalarıyla hazırlanmıştır.</p>
+      <h2>ET0 Paket (İklim Paneli) — Baraj</h2>
+      <p class="note">Bu bölüm, iklim panelinden türetilen ET0 grafiklerinin baraj odaklı kopyalarıyla hazırlanmıştır.</p>
       <div class="grid three">
         <figure class="card">
           <a href="assets/et0/baraj_et0_formula_explained.png" target="_blank" rel="noopener">
             <img src="assets/et0/baraj_et0_formula_explained.png" alt="ET0 formül açıklaması" />
           </a>
-          <figcaption>Baraj ET0 — FAO‑56 Penman‑Monteith Formülü</figcaption>
+          <figcaption>Baraj ET0 — FAO‑56 Penman‑Monteith (referans)</figcaption>
         </figure>
         <figure class="card">
           <a href="assets/et0/baraj_et0_monthly_explained_2004.png" target="_blank" rel="noopener">
             <img src="assets/et0/baraj_et0_monthly_explained_2004.png" alt="ET0 aylık açıklamalı örnek" />
           </a>
-          <figcaption>Baraj ET0 — Aylık (2004 açıklamalı)</figcaption>
+          <figcaption>Baraj ET0 — Aylık (örnek yıl)</figcaption>
         </figure>
         <figure class="card">
           <a href="assets/et0/baraj_et0_yearly_trend_robust_explained.png" target="_blank" rel="noopener">
             <img src="assets/et0/baraj_et0_yearly_trend_robust_explained.png" alt="ET0 yıllık trend" />
           </a>
-          <figcaption>Baraj ET0 — Yıllık Trend (Robust)</figcaption>
-        </figure>
-        <figure class="card">
-          <a href="assets/et0/baraj_et0_quant_forecast.png" target="_blank" rel="noopener">
-            <img src="assets/et0/baraj_et0_quant_forecast.png" alt="ET0 quant forecast" />
-          </a>
-          <figcaption>Baraj ET0 — Quant Forecast</figcaption>
+          <figcaption>Baraj ET0 — Yıllık Trend</figcaption>
         </figure>
         <figure class="card">
           <a href="assets/et0/baraj_et0_10year_summary.png" target="_blank" rel="noopener">
@@ -422,7 +419,7 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
 
     <section>
       <h2>V3 Modeller (Yeni Mimari)</h2>
-      <p class="note">V3 mimarisi: logit hedef + anomali + fizik katmanı + purged walk‑forward CV + konformal belirsizlik bandı. Eski çıktılara dokunulmadı; bunlar ek katmandır.</p>
+      <p class="note">V3 mimarisi: logit hedef + fizik katmanı + purged walk‑forward CV + konformal belirsizlik bandı. Anomali bileşeni yoktur; eski çıktılara dokunulmadı, bunlar ek katmandır.</p>
       <div class="grid three">
         <div class="card">
           <h3>LGB_DART</h3>
@@ -561,6 +558,15 @@ ET0 = [0.408·Δ·(Rn − G) + γ·(900/(T+273))·u2·(es − ea)] / [Δ + γ·(
         </div>
 
         <div class="card">
+          <div class="row">
+            <h4>Model Karşılaştırma (2040 Sonu)</h4>
+            <span class="pill" id="model-spread-pill">—</span>
+          </div>
+          <div class="model-focus-grid" id="model-focus-grid"></div>
+          <p class="note">Kartlara tıklayarak simülasyonu seçtiğiniz modelle çalıştırabilirsiniz.</p>
+        </div>
+
+        <div class="card">
           <h4>Gerçek Hesap (2023)</h4>
           <ul>
             <li>Buharlaşma payı: <strong id="base-evap-pct">—</strong> (<span id="base-evap-m3">—</span>)</li>
@@ -649,9 +655,8 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
           <li><a href="https://www.hec.usace.army.mil/confluence/hmsdocs/hmstrm/evaporation-and-transpiration/penman-monteith-method" target="_blank" rel="noopener">HEC USACE Penman‑Monteith yöntemi</a></li>
           <li><a href="https://wmo.int/guide-instruments-and-methods-of-observation-wmo-no-8-0" target="_blank" rel="noopener">WMO Guide (WMO‑No.8)</a></li>
           <li><a href="https://data.ibb.gov.tr/api/3/action/datastore_search" target="_blank" rel="noopener">İBB Açık Veri API (CKAN)</a></li>
-          <li><a href="https://www.ibb.istanbul/ibb/belediye-hakkinda/yetki-alani/" target="_blank" rel="noopener">İBB Yetki Alanı (havza alanı)</a></li>
           <li><a href="https://iski.istanbul/baraj-doluluk" target="_blank" rel="noopener">İSKİ Baraj Doluluk</a></li>
-          <li><a href="https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari" target="_blank" rel="noopener">İSKİ Su Kaynakları</a></li>
+          <li><a href="https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari" target="_blank" rel="noopener">İSKİ Su Kaynakları (baraj havzaları)</a></li>
           <li><a href="https://open-meteo.com/en/docs/historical-weather-api" target="_blank" rel="noopener">Open‑Meteo Historical Weather API</a></li>
           <li><a href="https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii" target="_blank" rel="noopener">NOAA NAO indeks serisi</a></li>
           <li><a href="https://www.aa.com.tr/tr/gundem/istanbulda-gecen-yil-1-milyar-117-milyon-64-bin-116-metrekup-su-kullanildi/3104905" target="_blank" rel="noopener">AA 2023 İstanbul su kullanımı haberi</a></li>
@@ -694,6 +699,7 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
     // Simple simulator
     let modelData = {};
     let dates = [];
+    let modelSummary = null;
     let baseline = null;
     let climateBaseline = {};
     let climateClim = null;
@@ -811,6 +817,157 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
       const global = clampCoeff(globalDen ? globalNum / globalDen : null);
       const byMonth = stats.map(s => clampCoeff(s.den ? s.num / s.den : null));
       return { global, byMonth };
+    }
+
+    function computeModelStats(series) {
+      const clean = (series || []).filter(d => d && d.fill !== null && d.fill !== undefined);
+      if (!clean.length) return null;
+      const fills = clean.map(d => d.fill);
+      const min = Math.min(...fills);
+      const max = Math.max(...fills);
+      const mean = fills.reduce((a, b) => a + b, 0) / fills.length;
+      const first = clean[0];
+      const last = clean[clean.length - 1];
+      return {
+        start: first.date,
+        end: last.date,
+        endFill: last.fill,
+        mean,
+        min,
+        max,
+        delta: last.fill - first.fill
+      };
+    }
+
+    function buildModelSummary() {
+      const grid = document.getElementById('model-focus-grid');
+      if (!grid) return;
+      const models = Object.keys(modelData || {});
+      if (!models.length) {
+        grid.innerHTML = '<p class="note">Model verisi bulunamadı.</p>';
+        return;
+      }
+
+      const cards = [];
+      if (models.length > 1) {
+        cards.push(`
+          <div class="model-card" data-model="all">
+            <div class="model-title">Tümü (Ensemble)</div>
+            <div class="model-meta" data-field="mean">2040 (trend dahil) ortalama: —</div>
+            <div class="model-delta" data-field="range">Aralık: —</div>
+            <div class="model-bar"><span data-field="bar"></span></div>
+          </div>
+        `);
+      }
+      models.forEach(m => {
+        cards.push(`
+          <div class="model-card" data-model="${m}">
+            <div class="model-title">${m.toUpperCase()}</div>
+            <div class="model-meta" data-field="end">2040 (trend dahil): —</div>
+            <div class="model-delta" data-field="delta">Δ —</div>
+            <div class="model-bar"><span data-field="bar"></span></div>
+          </div>
+        `);
+      });
+
+      grid.innerHTML = cards.join('');
+      grid.querySelectorAll('.model-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const select = document.getElementById('sim-model');
+          if (!select) return;
+          select.value = card.dataset.model;
+          renderSim();
+        });
+      });
+      updateModelSummarySelection(document.getElementById('sim-model')?.value || 'all');
+    }
+
+    function updateModelSummaryFromSeries(seriesMap) {
+      const grid = document.getElementById('model-focus-grid');
+      if (!grid) return;
+      const models = Object.keys(seriesMap || {});
+      if (!models.length) return;
+      const stats = {};
+      models.forEach(m => {
+        stats[m] = computeModelStats(seriesMap[m]);
+      });
+      const lengths = models.map(m => (seriesMap[m] || []).length).filter(n => n > 0);
+      const minLen = lengths.length ? Math.min(...lengths) : 0;
+      let ensemble = null;
+      if (minLen > 0) {
+        const lastIdx = minLen - 1;
+        const lastDate = seriesMap[models[0]][lastIdx]?.date;
+        const vals = models
+          .map(m => (seriesMap[m][lastIdx] ? seriesMap[m][lastIdx].fill : null))
+          .filter(v => v !== null && v !== undefined);
+        if (vals.length) {
+          const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+          const min = Math.min(...vals);
+          const max = Math.max(...vals);
+          ensemble = { date: lastDate, mean, min, max, spread: max - min };
+        }
+      }
+      modelSummary = { models, stats, ensemble };
+
+      if (ensemble) {
+        const card = grid.querySelector('.model-card[data-model="all"]');
+        if (card) {
+          const meanEl = card.querySelector('[data-field="mean"]');
+          const rangeEl = card.querySelector('[data-field="range"]');
+          const barEl = card.querySelector('[data-field="bar"]');
+          if (meanEl) meanEl.textContent = `2040 (trend dahil) ortalama: ${ensemble.mean.toFixed(1)}%`;
+          if (rangeEl) rangeEl.textContent = `Aralık: ${ensemble.min.toFixed(1)}–${ensemble.max.toFixed(1)}%`;
+          if (barEl) barEl.style.width = `${Math.max(0, Math.min(100, ensemble.mean))}%`;
+        }
+      }
+      models.forEach(m => {
+        const s = stats[m];
+        const card = grid.querySelector(`.model-card[data-model="${m}"]`);
+        if (!card || !s) return;
+        const delta = s.delta >= 0 ? `+${s.delta.toFixed(1)}` : s.delta.toFixed(1);
+        const color = MODEL_COLORS[m] || '#1f77b4';
+        const endEl = card.querySelector('[data-field="end"]');
+        const deltaEl = card.querySelector('[data-field="delta"]');
+        const barEl = card.querySelector('[data-field="bar"]');
+        if (endEl) endEl.textContent = `2040 (trend dahil): ${s.endFill.toFixed(1)}%`;
+        if (deltaEl) deltaEl.textContent = `Δ ${delta} puan (2000→2040)`;
+        if (barEl) {
+          barEl.style.width = `${Math.max(0, Math.min(100, s.endFill))}%`;
+          barEl.style.background = color;
+        }
+      });
+
+      updateModelSummarySelection(document.getElementById('sim-model')?.value || 'all');
+    }
+
+    function updateModelSummarySelection(selected) {
+      const grid = document.getElementById('model-focus-grid');
+      if (!grid) return;
+      grid.querySelectorAll('.model-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.model === selected);
+      });
+      const pill = document.getElementById('model-spread-pill');
+      if (!pill) return;
+      if (!modelSummary) {
+        pill.textContent = '—';
+        return;
+      }
+      if (selected === 'all') {
+        if (modelSummary.ensemble) {
+          const e = modelSummary.ensemble;
+          pill.textContent = `Ortalama ${e.mean.toFixed(1)}% • Aralık ${e.min.toFixed(1)}–${e.max.toFixed(1)}%`;
+        } else {
+          pill.textContent = '—';
+        }
+      } else {
+        const s = modelSummary.stats ? modelSummary.stats[selected] : null;
+        if (s) {
+          const delta = s.delta >= 0 ? `+${s.delta.toFixed(1)}` : s.delta.toFixed(1);
+          pill.textContent = `2040: ${s.endFill.toFixed(1)}% • Δ ${delta}`;
+        } else {
+          pill.textContent = '—';
+        }
+      }
     }
 
     function getRunoffCoeff(monthIdx, fallback) {
@@ -941,6 +1098,16 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
         const { base, adjusted } = getSeries(m, rain, et0, useM3, evapM3, useGrowth);
         baseSeries[m] = base;
         adjSeries[m] = adjusted;
+      });
+      const summaryModels = allModels.filter(m => (modelData[m] || []).length > 0);
+      const summaryAdjSeries = {};
+      summaryModels.forEach(m => {
+        if (adjSeries[m]) {
+          summaryAdjSeries[m] = adjSeries[m];
+          return;
+        }
+        const { adjusted } = getSeries(m, rain, et0, useM3, evapM3, useGrowth);
+        summaryAdjSeries[m] = adjusted;
       });
 
       if (models.length) {
@@ -1090,6 +1257,7 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
 
       svg.onmousemove = onMove;
       svg.onmouseleave = onLeave;
+      updateModelSummaryFromSeries(summaryAdjSeries);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1168,20 +1336,21 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
       const sourcesEl = document.getElementById('sim-sources');
       if (sourcesEl && baseline && baseline.sources) {
         const src = baseline.sources;
-        const reservoirSrc = reservoirRef && reservoirRef.source_page
-          ? `, <a href=\"${reservoirRef.source_page}\" target=\"_blank\" rel=\"noreferrer\">İSKİ havza/kapasite</a>`
-          : '';
-        sourcesEl.innerHTML = `Kaynaklar: <a href=\"${src.surface_area}\" target=\"_blank\" rel=\"noreferrer\">İBB yüzey alanı</a>, <a href=\"${src.kc_open_water}\" target=\"_blank\" rel=\"noreferrer\">FAO‑56</a>, <a href=\"${src.usage_2023}\" target=\"_blank\" rel=\"noreferrer\">2023 kullanım</a>${reservoirSrc}, iklim projeksiyonu (2010–2040).`;
+        const catchmentLink = src.catchment_area
+          ? `<a href=\"${src.catchment_area}\" target=\"_blank\" rel=\"noreferrer\">İSKİ su kaynakları (havza alanları)</a>`
+          : 'İSKİ su kaynakları (havza alanları)';
+        sourcesEl.innerHTML = `Kaynaklar: ${catchmentLink}, <a href=\"${src.kc_open_water}\" target=\"_blank\" rel=\"noreferrer\">FAO‑56</a>, <a href=\"${src.usage_2023}\" target=\"_blank\" rel=\"noreferrer\">2023 kullanım</a>, göl yüzey alanı (proje içi derleme), iklim projeksiyonu (2010–2040).`;
       } else if (sourcesEl) {
         sourcesEl.textContent = 'Kaynaklar: iklim projeksiyonu (2010–2040) ve proje içi kullanım/alan verileri.';
       }
       if (usageTrend) {
         const minPct = Math.round((usageTrend.yoy_p10 ?? -0.01) * 100 * 4) / 4;
         const maxPct = Math.round((usageTrend.yoy_p90 ?? 0.04) * 100 * 4) / 4;
-        const defaultPct = Math.round(((usageTrend.cagr_2019_2023 ?? usageTrend.yoy_median ?? 0.02) * 100) * 4) / 4;
+        const baseTrend = usageTrend.yoy_median ?? usageTrend.cagr_2019_2023 ?? 0.02;
+        const defaultPct = Math.round((baseTrend * 100) * 4) / 4;
         const slider = document.getElementById('sim-use-growth');
-        slider.min = String(Math.min(-1, minPct));
-        slider.max = String(Math.max(4, maxPct));
+        slider.min = String(minPct);
+        slider.max = String(maxPct);
         slider.step = '0.25';
         slider.value = String(defaultPct);
         const rangeEl = document.getElementById('sim-use-range');
@@ -1208,6 +1377,7 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
       } else {
         document.getElementById('sim-use-m3').value = 250;
       }
+      buildModelSummary();
       renderSim();
     });
 

@@ -15,6 +15,7 @@ Kullanım:
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 import time
@@ -70,6 +71,84 @@ except Exception:
 warnings.filterwarnings("ignore")
 
 ROOT = Path("/Users/yasinkaya/Hackhaton")
+
+
+def load_js_payload(path: Path, prefix: str) -> dict:
+    raw = path.read_text().strip()
+    if not raw.startswith(prefix):
+        raise ValueError(f"Unexpected JS format in {path}")
+    payload = raw[len(prefix):].strip()
+    if payload.endswith(";"):
+        payload = payload[:-1]
+    return json.loads(payload)
+
+
+def load_climate_baseline() -> pd.DataFrame:
+    data = load_js_payload(ROOT / "assets/data/climate_baseline.js", "window.CLIMATE_BASELINE = ")
+    rows = []
+    for date_str, vals in data.items():
+        rows.append({
+            "date": pd.to_datetime(date_str),
+            "rain_mm": vals.get("precip_mm_month"),
+            "et0_mm_month": vals.get("et0_mm_month"),
+        })
+    return pd.DataFrame(rows).sort_values("date")
+
+
+def load_usage_profile() -> list[float]:
+    data = load_js_payload(ROOT / "assets/data/usage_monthly_profile.js", "window.USAGE_PROFILE = ")
+    profile = data.get("profile") or []
+    if len(profile) != 12:
+        raise ValueError("usage profile must have 12 monthly weights")
+    return [float(v) for v in profile]
+
+
+def load_usage_trend() -> float:
+    data = load_js_payload(ROOT / "assets/data/usage_trend_stats.js", "window.USAGE_TREND = ")
+    return float(data.get("yoy_median") or data.get("cagr_2019_2023") or data.get("yoy_mean") or 0.0)
+
+
+def apply_consumption_trend(df: pd.DataFrame, profile: list[float], growth: float) -> pd.DataFrame:
+    if "consumption_mean_monthly" not in df.columns:
+        return df
+    out = df.copy()
+    out["date"] = pd.to_datetime(out["date"])
+    out["year"] = out["date"].dt.year
+    out["month"] = out["date"].dt.month
+
+    counts = out.groupby("year")["consumption_mean_monthly"].apply(lambda s: s.notna().sum())
+    full_years = counts[counts == 12]
+    if full_years.empty:
+        return out
+    base_year = int(full_years.index.max())
+
+    base_df = out[out["year"] == base_year].copy()
+    base_df["days"] = base_df["date"].dt.days_in_month
+    base_annual = float((base_df["consumption_mean_monthly"] * base_df["days"]).sum())
+
+    for year in sorted(out["year"].unique()):
+        year_mask = out["year"] == year
+        year_df = out[year_mask].copy()
+        if year_df.empty:
+            continue
+        annual_target = base_annual * ((1 + growth) ** max(0, year - base_year))
+        year_df["days"] = year_df["date"].dt.days_in_month
+        existing = year_df[year_df["consumption_mean_monthly"].notna()].copy()
+        existing_total = float((existing["consumption_mean_monthly"] * existing["days"]).sum())
+        remaining = max(0.0, annual_target - existing_total)
+
+        missing = year_df[year_df["consumption_mean_monthly"].isna()].copy()
+        if missing.empty:
+            continue
+        weights = [profile[m - 1] for m in missing["month"]]
+        weight_sum = sum(weights) if sum(weights) > 0 else 1.0
+        for idx, row in missing.iterrows():
+            weight = profile[int(row["month"]) - 1] / weight_sum
+            monthly_total = remaining * weight
+            daily_mean = monthly_total / row["days"] if row["days"] else 0.0
+            out.loc[idx, "consumption_mean_monthly"] = daily_mean
+
+    return out
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging
@@ -243,6 +322,8 @@ ALL_FEATURE_COLS = [
     # Ham iklim
     "rain_mm", "et0_mm_month", "t_mean_c", "rh_mean_pct", "pressure_kpa",
     "vpd_kpa_mean", "climate_balance_mm",
+    # Kullanım (trend dahil)
+    "consumption_mean_monthly", "consumption_lag1", "consumption_ma3",
     # Fizik özellikleri (YENİ)
     "api", "snow_proxy_mm", "bucket_pct",
     # STL (YENİ)
@@ -287,6 +368,10 @@ def build_features(df: pd.DataFrame, climatology: pd.Series | None = None) -> pd
         )
 
     d["climate_balance_mm"] = d["rain_mm"] - d["et0_mm_month"]
+    if "consumption_mean_monthly" not in d.columns:
+        d["consumption_mean_monthly"] = 0.0
+    d["consumption_lag1"] = d["consumption_mean_monthly"].shift(1).fillna(d["consumption_mean_monthly"].mean())
+    d["consumption_ma3"] = d["consumption_mean_monthly"].rolling(3, min_periods=1).mean()
     d["month"]   = d["date"].dt.month
     d["quarter"] = d["date"].dt.quarter
 
@@ -416,9 +501,21 @@ def load_and_merge(panel_path: Path, climate_path: Path | None = None) -> pd.Dat
         base.drop(columns=["_month"], inplace=True)
         panel = base
 
+    # ET0/yağış panel override (2010-2040 iklim paneli)
+    climate_panel = load_climate_baseline()
+    panel = panel.merge(climate_panel, on="date", how="left", suffixes=("", "_panel"))
+    for col in ["rain_mm", "et0_mm_month"]:
+        cc = f"{col}_panel"
+        if cc in panel.columns:
+            panel[col] = panel[cc].combine_first(panel[col])
+            panel.drop(columns=[cc], inplace=True)
+
+    # Kullanım trendi uygula
+    panel = apply_consumption_trend(panel, load_usage_profile(), load_usage_trend())
+
     # Global ortalama fallback (fill_pct ve weighted_total_fill hariç)
     num_cols = panel.select_dtypes(include=np.number).columns
-    exclude = {"fill_pct", "weighted_total_fill"}
+    exclude = {"fill_pct", "weighted_total_fill", "consumption_mean_monthly"}
     fill_cols = [c for c in num_cols if c not in exclude]
     panel[fill_cols] = panel[fill_cols].fillna(panel[fill_cols].mean())
     panel = panel.sort_values("date").reset_index(drop=True)
@@ -668,6 +765,7 @@ def simulate_v3(
     rw_decay: float = 0.85,
     rw_scale: float = 0.9,
     seed: int = 42,
+    refit_each_year: bool = True,
 ) -> pd.DataFrame:
     """
     İyileştirilmiş otoregresif projeksiyon:
@@ -718,54 +816,99 @@ def simulate_v3(
         return float(np.mean(vals)) if vals else 50.0
 
     rng = np.random.default_rng(seed)
-    rw_state = 0.0  # düşük frekanslı rastgele yürüyüş (daha doğal dalga)
-    for year in range(start_date.year, end_date.year + 1):
-        train_end = pd.Timestamp(f"{year - 1}-12-01")
-        train_df = data[(data["date"] <= train_end) & data["fill_pct"].notna()].copy()
+    fixed_month_resid = None
+    if not refit_each_year:
+        train_df = data[(data["date"] < start_date) & data["fill_pct"].notna()].copy()
         train_df = train_df.dropna(subset=feat_cols + ["fill_pct"])
         if train_df.empty:
-            continue
-
-        X_tr = train_df[feat_cols].values
-
-        # Hedef: logit anomali
-        if use_anomaly_target and use_logit_target:
-            anom_tr = fill_to_anomaly(train_df["fill_pct"],
-                                       train_df["date"].dt.month, climatology)
-            y_tr = to_logit(np.clip(anom_tr + 50.0, EPS * 100, (1 - EPS) * 100))
-        elif use_anomaly_target:
-            y_tr = fill_to_anomaly(train_df["fill_pct"],
-                                    train_df["date"].dt.month, climatology).values
-        elif use_logit_target:
-            y_tr = to_logit(train_df["fill_pct"].values)
+            log.warning("Refit kapalı ama eğitim verisi yok; refit_each_year=True uygulanacak.")
+            refit_each_year = True
         else:
-            y_tr = train_df["fill_pct"].values
+            X_tr = train_df[feat_cols].values
+            if use_anomaly_target and use_logit_target:
+                anom_tr = fill_to_anomaly(train_df["fill_pct"],
+                                           train_df["date"].dt.month, climatology)
+                y_tr = to_logit(np.clip(anom_tr + 50.0, EPS * 100, (1 - EPS) * 100))
+            elif use_anomaly_target:
+                y_tr = fill_to_anomaly(train_df["fill_pct"],
+                                        train_df["date"].dt.month, climatology).values
+            elif use_logit_target:
+                y_tr = to_logit(train_df["fill_pct"].values)
+            else:
+                y_tr = train_df["fill_pct"].values
 
-        try:
             model.fit(X_tr, y_tr)
             q10_model.fit(X_tr, y_tr)
             q90_model.fit(X_tr, y_tr)
-        except Exception as e:
-            log.error(f"  {year}: eğitim hatası — {e}")
-            continue
 
-        # residual dağılımı (ay bazında) — düzenliliği kırmak için
-        month_resid = {m: [] for m in range(1, 13)}
-        if stochastic_residuals:
+            month_resid = {m: [] for m in range(1, 13)}
+            if stochastic_residuals:
+                try:
+                    pred_tr = model.predict(X_tr)
+                    clim_tr = train_df["date"].dt.month.map(climatology).values
+                    if use_anomaly_target and use_logit_target:
+                        pred_fill = np.clip(from_logit(pred_tr) - 50.0 + clim_tr, 0, 100)
+                    elif use_logit_target:
+                        pred_fill = np.clip(from_logit(pred_tr), 0, 100)
+                    else:
+                        pred_fill = np.clip(pred_tr, 0, 100)
+                    resid = train_df["fill_pct"].values - pred_fill
+                    for m, r in zip(train_df["date"].dt.month.values, resid):
+                        month_resid[int(m)].append(float(r))
+                except Exception as e:
+                    log.warning(f"  Residual hesaplanamadı (fixed): {e}")
+            fixed_month_resid = month_resid
+    rw_state = 0.0  # düşük frekanslı rastgele yürüyüş (daha doğal dalga)
+    for year in range(start_date.year, end_date.year + 1):
+        if refit_each_year:
+            train_end = pd.Timestamp(f"{year - 1}-12-01")
+            train_df = data[(data["date"] <= train_end) & data["fill_pct"].notna()].copy()
+            train_df = train_df.dropna(subset=feat_cols + ["fill_pct"])
+            if train_df.empty:
+                continue
+
+            X_tr = train_df[feat_cols].values
+
+            # Hedef: logit anomali
+            if use_anomaly_target and use_logit_target:
+                anom_tr = fill_to_anomaly(train_df["fill_pct"],
+                                           train_df["date"].dt.month, climatology)
+                y_tr = to_logit(np.clip(anom_tr + 50.0, EPS * 100, (1 - EPS) * 100))
+            elif use_anomaly_target:
+                y_tr = fill_to_anomaly(train_df["fill_pct"],
+                                        train_df["date"].dt.month, climatology).values
+            elif use_logit_target:
+                y_tr = to_logit(train_df["fill_pct"].values)
+            else:
+                y_tr = train_df["fill_pct"].values
+
             try:
-                pred_tr = model.predict(X_tr)
-                clim_tr = train_df["date"].dt.month.map(climatology).values
-                if use_anomaly_target and use_logit_target:
-                    pred_fill = np.clip(from_logit(pred_tr) - 50.0 + clim_tr, 0, 100)
-                elif use_logit_target:
-                    pred_fill = np.clip(from_logit(pred_tr), 0, 100)
-                else:
-                    pred_fill = np.clip(pred_tr, 0, 100)
-                resid = train_df["fill_pct"].values - pred_fill
-                for m, r in zip(train_df["date"].dt.month.values, resid):
-                    month_resid[int(m)].append(float(r))
+                model.fit(X_tr, y_tr)
+                q10_model.fit(X_tr, y_tr)
+                q90_model.fit(X_tr, y_tr)
             except Exception as e:
-                log.warning(f"  Residual hesaplanamadı ({year}): {e}")
+                log.error(f"  {year}: eğitim hatası — {e}")
+                continue
+
+            # residual dağılımı (ay bazında) — düzenliliği kırmak için
+            month_resid = {m: [] for m in range(1, 13)}
+            if stochastic_residuals:
+                try:
+                    pred_tr = model.predict(X_tr)
+                    clim_tr = train_df["date"].dt.month.map(climatology).values
+                    if use_anomaly_target and use_logit_target:
+                        pred_fill = np.clip(from_logit(pred_tr) - 50.0 + clim_tr, 0, 100)
+                    elif use_logit_target:
+                        pred_fill = np.clip(from_logit(pred_tr), 0, 100)
+                    else:
+                        pred_fill = np.clip(pred_tr, 0, 100)
+                    resid = train_df["fill_pct"].values - pred_fill
+                    for m, r in zip(train_df["date"].dt.month.values, resid):
+                        month_resid[int(m)].append(float(r))
+                except Exception as e:
+                    log.warning(f"  Residual hesaplanamadı ({year}): {e}")
+        else:
+            month_resid = fixed_month_resid or {m: [] for m in range(1, 13)}
 
         year_mask = ((data["date"] >= pd.Timestamp(f"{year}-01-01")) &
                      (data["date"] <= min(pd.Timestamp(f"{year}-12-01"), end_date)) &
@@ -1249,6 +1392,7 @@ def main():
             df, model, climatology, conformal,
             q10_model, q90_model,
             start_date, end_date, feat_cols,
+            refit_each_year=(name != "stack"),
         )
         out["model"] = name
         out.to_csv(out_dir / f"projection_{name}.csv", index=False)

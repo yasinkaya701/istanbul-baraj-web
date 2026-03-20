@@ -305,7 +305,7 @@ Detayli baglantilar burada, ozet kaynakca ise README.md icindedir.
 - [https://www.hurriyet.com.tr/gundem/turkiye-genelinde-yagis-bekleniyor-14489316](https://www.hurriyet.com.tr/gundem/turkiye-genelinde-yagis-bekleniyor-14489316)
 - [https://www.iarc.who.int/news-events/world-cancer-day-2025-illuminating-the-role-of-uv-radiation-in-skin-cancer-risk/](https://www.iarc.who.int/news-events/world-cancer-day-2025-illuminating-the-role-of-uv-radiation-in-skin-cancer-risk/)
 - [https://www.iarc.who.int/wp-content/uploads/2025/02/wcd-2025-skin-cancer-infographic-EN.pdf](https://www.iarc.who.int/wp-content/uploads/2025/02/wcd-2025-skin-cancer-infographic-EN.pdf)
-- [https://www.ibb.istanbul/ibb/belediye-hakkinda/yetki-alani/](https://www.ibb.istanbul/ibb/belediye-hakkinda/yetki-alani/)
+- [https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari](https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari)
 - [https://www.irishtimes.com/news/death-toll-of-turkish-floods-hits-30-1.430985](https://www.irishtimes.com/news/death-toll-of-turkish-floods-hits-30-1.430985)
 - [https://www.iski.gov.tr/web/assets/SayfalarDocs/faaliyetraporlari/faaliyetraporu2008/2017_Faaliyet_Raporu..pdf](https://www.iski.gov.tr/web/assets/SayfalarDocs/faaliyetraporlari/faaliyetraporu2008/2017_Faaliyet_Raporu..pdf)
 - [https://www.iski.gov.tr/web/assets/SayfalarDocs/faaliyetraporlari/faaliyetraporu2008/2017_Faaliyet_Raporu..pdf,2026-03-11,Official](https://www.iski.gov.tr/web/assets/SayfalarDocs/faaliyetraporlari/faaliyetraporu2008/2017_Faaliyet_Raporu..pdf,2026-03-11,Official)

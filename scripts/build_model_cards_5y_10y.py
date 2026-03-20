@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -14,6 +15,82 @@ from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, Gradien
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 ROOT = Path("/Users/yasinkaya/Hackhaton")
+
+
+def load_js_payload(path: Path, prefix: str) -> dict:
+    raw = path.read_text().strip()
+    if not raw.startswith(prefix):
+        raise ValueError(f"Unexpected JS format in {path}")
+    payload = raw[len(prefix):].strip()
+    if payload.endswith(";"):
+        payload = payload[:-1]
+    return json.loads(payload)
+
+
+def load_climate_baseline() -> pd.DataFrame:
+    data = load_js_payload(ROOT / "assets/data/climate_baseline.js", "window.CLIMATE_BASELINE = ")
+    rows = []
+    for date_str, vals in data.items():
+        rows.append({
+            "date": pd.to_datetime(date_str),
+            "rain_mm": vals.get("precip_mm_month"),
+            "et0_mm_month": vals.get("et0_mm_month"),
+        })
+    return pd.DataFrame(rows).sort_values("date")
+
+
+def load_usage_profile() -> list[float]:
+    data = load_js_payload(ROOT / "assets/data/usage_monthly_profile.js", "window.USAGE_PROFILE = ")
+    profile = data.get("profile") or []
+    if len(profile) != 12:
+        raise ValueError("usage profile must have 12 monthly weights")
+    return [float(v) for v in profile]
+
+
+def load_usage_trend() -> float:
+    data = load_js_payload(ROOT / "assets/data/usage_trend_stats.js", "window.USAGE_TREND = ")
+    return float(data.get("yoy_median") or data.get("cagr_2019_2023") or data.get("yoy_mean") or 0.0)
+
+
+def apply_consumption_trend(df: pd.DataFrame, profile: list[float], growth: float) -> pd.DataFrame:
+    out = df.copy()
+    out["date"] = pd.to_datetime(out["date"])
+    out["year"] = out["date"].dt.year
+    out["month"] = out["date"].dt.month
+
+    counts = out.groupby("year")["consumption_mean_monthly"].apply(lambda s: s.notna().sum())
+    full_years = counts[counts == 12]
+    if full_years.empty:
+        return out
+    base_year = int(full_years.index.max())
+
+    base_df = out[out["year"] == base_year].copy()
+    base_df["days"] = base_df["date"].dt.days_in_month
+    base_annual = float((base_df["consumption_mean_monthly"] * base_df["days"]).sum())
+
+    for year in sorted(out["year"].unique()):
+        year_mask = out["year"] == year
+        year_df = out[year_mask].copy()
+        if year_df.empty:
+            continue
+        annual_target = base_annual * ((1 + growth) ** max(0, year - base_year))
+        year_df["days"] = year_df["date"].dt.days_in_month
+        existing = year_df[year_df["consumption_mean_monthly"].notna()].copy()
+        existing_total = float((existing["consumption_mean_monthly"] * existing["days"]).sum())
+        remaining = max(0.0, annual_target - existing_total)
+
+        missing = year_df[year_df["consumption_mean_monthly"].isna()].copy()
+        if missing.empty:
+            continue
+        weights = [profile[m - 1] for m in missing["month"]]
+        weight_sum = sum(weights) if sum(weights) > 0 else 1.0
+        for idx, row in missing.iterrows():
+            weight = profile[int(row["month"]) - 1] / weight_sum
+            monthly_total = remaining * weight
+            daily_mean = monthly_total / row["days"] if row["days"] else 0.0
+            out.loc[idx, "consumption_mean_monthly"] = daily_mean
+
+    return out
 
 
 def mape(y_true, y_pred):
@@ -50,11 +127,22 @@ def load_panel(panel_path: Path) -> pd.DataFrame:
     df = pd.read_csv(panel_path)
     df["date"] = pd.to_datetime(df["date"])
     df = df.sort_values("date")
+    climate_panel = load_climate_baseline()
+    df = df.merge(climate_panel, on="date", how="left", suffixes=("", "_panel"))
+    for col in ["rain_mm", "et0_mm_month"]:
+        panel_col = f"{col}_panel"
+        if panel_col in df:
+            df[col] = df[panel_col].combine_first(df[col])
+            df = df.drop(columns=[panel_col])
+
+    df = apply_consumption_trend(df, load_usage_profile(), load_usage_trend())
     df["fill_pct"] = df["weighted_total_fill"] * 100.0
     df["lag1_fill_pct"] = df["fill_pct"].shift(1)
     df["month"] = df["date"].dt.month
     df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12.0)
     df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12.0)
+    df["consumption_lag1"] = df["consumption_mean_monthly"].shift(1)
+    df["consumption_ma3"] = df["consumption_mean_monthly"].rolling(3, min_periods=1).mean()
     return df
 
 
@@ -62,6 +150,9 @@ def build_features(df: pd.DataFrame, drop_cols: list[str]) -> pd.DataFrame:
     cols = [
         "rain_mm",
         "et0_mm_month",
+        "consumption_mean_monthly",
+        "consumption_lag1",
+        "consumption_ma3",
         "t_mean_c",
         "rh_mean_pct",
         "pressure_kpa",

@@ -175,6 +175,18 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baselin
     mean_et0 = float(np.mean([r["et0_mm_month"] for r in rows])) if rows else float(df["et0_mm_month"].mean())
     mean_use = float(df["consumption_mean_monthly"].mean())
 
+    # Keep scenario shocks in a realistic monthly band using observed fill deltas.
+    obs = panel.copy()
+    obs["date"] = pd.to_datetime(obs["date"])
+    obs = obs[(obs["date"] >= "2010-01-01") & (obs["date"] <= "2024-02-01")]
+    obs = obs[["date", "weighted_total_fill"]].dropna().sort_values("date")
+    obs["delta_fill"] = obs["weighted_total_fill"].diff(1)
+    abs_delta = obs["delta_fill"].abs().dropna()
+    if len(abs_delta):
+        scenario_delta_cap_pp = float(np.clip(np.percentile(abs_delta, 90) * 1.1, 0.08, 0.25))
+    else:
+        scenario_delta_cap_pp = 0.16
+
     updated = dict(existing)
     runoff_coeff = float(existing.get("runoff_coeff", 0.6))
     adjustment_scale = compute_adjustment_scale(panel, baseline, reservoir, runoff_coeff)
@@ -188,6 +200,8 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baselin
             "mean_et0": mean_et0,
             "mean_use_monthly": mean_use,
             "adjustment_cap_scale": adjustment_scale,
+            "scenario_delta_cap_pp": scenario_delta_cap_pp,
+            "scenario_damping_floor": 0.25,
             "k_source": "observed_fill_pct_2010_2024_vs_balance_median_scale",
         }
     )

@@ -310,6 +310,10 @@ figcaption { margin-top: 8px; color: var(--muted); }
   overflow-wrap: anywhere;
 }
 
+.mobile-hscroll-tip {
+  display: none;
+}
+
 .footer {
   border-top: 1px solid var(--line);
   padding: 18px 24px;
@@ -470,6 +474,30 @@ figcaption { margin-top: 8px; color: var(--muted); }
     text-align: center;
   }
 
+  /* Dense charts are unreadable when forced into viewport width.
+     On mobile we allow horizontal pan at a larger fixed render width. */
+  figure.card,
+  .panel-media,
+  .card.chart-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  figure.card img,
+  .panel-media img,
+  .card.chart-scroll > img.zoomable {
+    width: 680px;
+    min-width: 680px;
+    max-width: none;
+    height: auto;
+  }
+
+  .mobile-hscroll-tip {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+  }
+
   .legend {
     font-size: 0.82rem;
     gap: 8px;
@@ -508,6 +536,13 @@ figcaption { margin-top: 8px; color: var(--muted); }
 
   .chip-group {
     grid-template-columns: 1fr;
+  }
+
+  figure.card img,
+  .panel-media img,
+  .card.chart-scroll > img.zoomable {
+    width: 620px;
+    min-width: 620px;
   }
 }
 

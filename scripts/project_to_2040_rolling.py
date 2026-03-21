@@ -276,6 +276,15 @@ def simulate_projection(
     ]
 
     rng = np.random.default_rng(seed)
+    # Smooth handover from observed->projected and damp year-turn jumps.
+    hist = data[data["fill_pct"].notna()]["fill_pct"]
+    hist_abs_delta = hist.diff().abs().dropna()
+    last_obs_date = data.loc[data["fill_pct"].notna(), "date"].max()
+    if len(hist_abs_delta):
+        monthly_delta_cap = float(np.clip(np.percentile(hist_abs_delta, 75) * 1.15, 6.0, 12.0))
+    else:
+        monthly_delta_cap = 10.0
+    first_year_turn = pd.Timestamp(f"{start_date.year + 1}-01-01")
 
     # iterate year-by-year (model refit each year)
     for year in range(start_date.year, end_date.year + 1):
@@ -283,12 +292,20 @@ def simulate_projection(
         year_end = pd.Timestamp(f"{year}-12-01")
 
         # determine training window for the year
-        if year == 2027:
-            train_end = pd.Timestamp("2026-12-01")
+        if year == start_date.year and pd.notna(last_obs_date):
+            desired_train_end = pd.Timestamp(last_obs_date)
+        elif year == 2027:
+            desired_train_end = pd.Timestamp("2026-12-01")
         elif year >= 2028:
-            train_end = pd.Timestamp(f"{year-1}-12-01")
+            desired_train_end = pd.Timestamp(f"{year-1}-12-01")
         else:
-            train_end = year_start - pd.DateOffset(months=1)
+            desired_train_end = year_start - pd.DateOffset(months=1)
+
+        # Never train on non-observed horizon months; keep yearly refits continuous.
+        if pd.notna(last_obs_date):
+            train_end = min(pd.Timestamp(last_obs_date), desired_train_end)
+        else:
+            train_end = desired_train_end
 
         train = data[data["date"] <= train_end].copy()
         train = train.dropna(subset=feat_cols + ["fill_pct"])
@@ -324,6 +341,26 @@ def simulate_projection(
             if use_stochastic_future:
                 # optional stochastic path (disabled for scientific mean path)
                 yhat = yhat + rng.normal(0.0, 1.0)
+                yhat = float(np.clip(yhat, 0.0, 100.0))
+
+            # Transition damping: first projected month and January are softened.
+            if np.isfinite(lag1):
+                cur_date = data.loc[i, "date"]
+                if i == start_idx:
+                    alpha = 0.45
+                    delta_cap = monthly_delta_cap
+                elif cur_date == first_year_turn:
+                    # Guard against visible break at the first Dec→Jan turn.
+                    alpha = 0.45
+                    delta_cap = min(monthly_delta_cap, 5.0)
+                elif int(cur_date.month) == 1:
+                    alpha = 0.60
+                    delta_cap = monthly_delta_cap
+                else:
+                    alpha = 1.0
+                    delta_cap = monthly_delta_cap
+                yhat = lag1 + alpha * (yhat - lag1)
+                yhat = lag1 + float(np.clip(yhat - lag1, -delta_cap, delta_cap))
                 yhat = float(np.clip(yhat, 0.0, 100.0))
             pred.loc[i] = yhat
             data.loc[i, "fill_pct"] = yhat

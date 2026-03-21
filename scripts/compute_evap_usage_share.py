@@ -10,11 +10,14 @@ ROOT = Path("/Users/yasinkaya/Hackhaton")
 PANEL_PATH = ROOT / "output/newdata_feature_store/tables/istanbul_dam_driver_panel_2000_2026_extended.csv"
 OUT_JSON = ROOT / "baraj_web/assets/data/evap_usage_baseline.json"
 
-# Surface areas (km^2) from IBB "Yetki Alanı" table for İstanbul lakes/dams
+# Open-water surface areas used in ET0->evaporation conversion (km^2).
+# Sazlıdere (11.81 km^2) is from İSKİ "Su Kaynakları" text (normal lake area).
+# Other lake areas are project calibration constants because the same official
+# source does not provide normal lake area for each reservoir.
 AREA_KM2 = {
     "Terkos": 36.10,
     "Büyükçekmece": 24.17,
-    "Sazlıdere": 9.85,
+    "Sazlıdere": 11.81,
     "Alibey": 1.66,
     "Ömerli": 21.07,
     "Darlık": 5.93,
@@ -24,8 +27,10 @@ AREA_KM2 = {
 # FAO-56 suggests Kc ≈ 1.05 for open water (<2 m depth or subhumid climates)
 K_OPEN_WATER = 1.05
 
-# Annual water supply from reservoirs (barajlar) for 2023 (İSKİ statement reported by AA)
+# Annual water supply from reservoirs (barajlar) for 2023
+# (secondary statement source that quotes İSKİ values)
 BARAJ_SUPPLY_2023_M3 = 275_104_161
+# Total city supply in 2023 from İBB Open Data (İSKİ publisher) monthly table sum
 TOTAL_SUPPLY_2023_M3 = 1_117_064_116
 
 
@@ -62,11 +67,13 @@ def main():
         "evap_share": evap_share,
         "usage_share": usage_share,
         "sources": {
-            "catchment_area": "https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari",
-            "kc_open_water": "https://www.wcc.nrcs.usda.gov/ftpref/wntsc/waterMgt/irrigation/fao56.pdf",
-            "usage_2023": "https://www.aa.com.tr/tr/gundem/istanbulda-gecen-yil-1-milyar-117-milyon-64-bin-116-metrekup-su-kullanildi/3104905",
+            "lake_surface_area_sazlidere": "https://iski.istanbul/kurumsal/hakkimizda/su-kaynaklari",
+            "total_supply_2023": "https://data.ibb.gov.tr/dataset/96fde959-3d0b-46d6-8b1d-78a7ba879fc6/resource/27bdb043-0051-49df-bd7c-b68f60f31247/download/istanbula-verilen-temiz-su-miktarlar-tr-en.xlsx",
+            "total_supply_2023_api_snapshot": "https://iskiapi.iski.istanbul/api/iski/baraj/icmeSuyuAritma/sonOnyildaVerilenToplamSu/v2",
+            "baraj_supply_2023_secondary": "https://www.aa.com.tr/tr/gundem/istanbulda-gecen-yil-1-milyar-117-milyon-64-bin-116-metrekup-su-kullanildi/3104905",
+            "kc_open_water": "https://www.fao.org/4/X0490E/X0490E00.htm",
         },
-        "notes": "Pabuçdere/Kazandere/Istrancalar için açık yüzey alanı bulunamadı; hesap ana İstanbul baraj alanlarıyla yapılmıştır. Kc=1.05 FAO-56 açık su katsayısı (sığ su / sub-humid varsayımı).",
+        "notes": "Sazlıdere normal su kotu göl alanı İSKİ metninden alınmıştır. Diğer barajların göl yüzey alanları resmi sayfada tek tek verilmediği için kalibre edilmiş sabitler korunmuştur. Pabuçdere/Kazandere/Istrancalar için açık yüzey alanı bulunamadı; hesap ana İstanbul baraj alanlarıyla yapılmıştır. Kc=1.05 FAO-56 açık su katsayısı (sığ su / sub-humid varsayımı).",
     }
 
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)

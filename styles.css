@@ -18,9 +18,17 @@ body {
   margin: 0;
   font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
   color: var(--ink);
+  overflow-x: hidden;
   background:
     radial-gradient(1200px 600px at 85% -10%, #fff 0%, rgba(255,255,255,0) 60%),
     linear-gradient(180deg, #f8f7f2, #f2f0e8);
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 
 .top-nav {
@@ -361,6 +369,11 @@ figcaption { margin-top: 8px; color: var(--muted); }
     padding: 16px;
   }
 
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   section {
     margin: 24px 0;
   }
@@ -386,9 +399,40 @@ figcaption { margin-top: 8px; color: var(--muted); }
     font-size: 0.85rem;
   }
 
+  .formula-fraction {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .formula-fraction .eq-left {
+    margin-bottom: 2px;
+  }
+
   .tab {
     padding: 6px 10px;
     font-size: 0.9rem;
+  }
+
+  .sim-chart {
+    padding: 8px 6px;
+  }
+
+  .sim-svg {
+    height: 300px;
+  }
+
+  .sim-params {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .sim-controls .btn {
+    width: 100%;
   }
 }
 
@@ -399,6 +443,10 @@ figcaption { margin-top: 8px; color: var(--muted); }
 
   .meta {
     flex-direction: column;
+  }
+
+  .sim-svg {
+    height: 260px;
   }
 }
 
@@ -430,6 +478,37 @@ figcaption { margin-top: 8px; color: var(--muted); }
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.95rem;
   overflow-x: auto;
+}
+
+.formula-fraction {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.formula-fraction .eq-left {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.formula-fraction .eq-right {
+  min-width: 0;
+  flex: 1;
+}
+
+.formula-fraction .eq-num,
+.formula-fraction .eq-den {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.formula-fraction .eq-bar {
+  border-top: 2px solid rgba(244, 244, 244, 0.9);
+  margin: 6px 0;
+}
+
+.formula-fraction sub {
+  font-size: 0.72em;
 }
 
 .tabs {
@@ -962,6 +1041,4 @@ select {
 @media (max-width: 1000px) {
   .sim-layout { grid-template-columns: 1fr; }
   .sim-metrics { grid-template-columns: 1fr; }
-  .nav-inner { flex-direction: column; align-items: flex-start; }
-  .hero-stats { grid-template-columns: 1fr; }
 }

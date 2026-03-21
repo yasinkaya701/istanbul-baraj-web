@@ -11,6 +11,7 @@ import pandas as pd
 ROOT = Path("/Users/yasinkaya/Hackhaton")
 PANEL = ROOT / "output/newdata_feature_store/tables/istanbul_dam_driver_panel_2000_2026_extended.csv"
 CLIMATE_PATH = ROOT / "assets/data/climate_baseline.js"
+ISKI_ANNUAL_SUPPLY_PATH = ROOT / "output/iski_baraj_api_snapshot/tables/son_10_yil_toplam_verilen_su.csv"
 
 USAGE_PROFILE_OUT = [
     ROOT / "assets/data/usage_monthly_profile.js",
@@ -49,7 +50,7 @@ def load_reservoir_reference_simple(path: Path) -> dict:
         match = re.search(rf"{key}\\s*:\\s*\\\"([^\\\"]+)\\\"", text)
         return match.group(1) if match else None
     return {
-        "total_catchment_km2": find_num("total_catchment_km2") or 2688.0,
+        "total_catchment_km2": find_num("total_catchment_km2") or 3150.0,
         "total_active_capacity_mcm": find_num("total_active_capacity_mcm") or 868.683,
         "source": find_str("source") or "",
         "source_page": find_str("source_page") or "",
@@ -97,7 +98,51 @@ def build_usage_stats(panel: pd.DataFrame) -> tuple[dict, dict]:
         "yoy_median": float(yoy.median()) if len(yoy) else 0.0,
         "yoy_p10": float(np.percentile(yoy, 10)) if len(yoy) else 0.0,
         "yoy_p90": float(np.percentile(yoy, 90)) if len(yoy) else 0.0,
+        "trend_source": "panel_consumption_mean_monthly_full_years",
     }
+
+    # Prefer official annual total-supply trend when available.
+    if ISKI_ANNUAL_SUPPLY_PATH.exists():
+        try:
+            off = pd.read_csv(ISKI_ANNUAL_SUPPLY_PATH)
+            if {"tarih", "verilenTemizsuM3"}.issubset(set(off.columns)):
+                off_year = pd.to_datetime(off["tarih"], errors="coerce").dt.year
+                off_val = pd.to_numeric(off["verilenTemizsuM3"], errors="coerce")
+                annual_off = (
+                    pd.DataFrame({"year": off_year, "value": off_val})
+                    .dropna()
+                    .groupby("year")["value"]
+                    .mean()
+                    .sort_index()
+                )
+                # Drop likely partial latest year (typically much smaller than previous full year)
+                if len(annual_off) >= 2 and annual_off.iloc[-1] < annual_off.iloc[-2] * 0.6:
+                    annual_off = annual_off.iloc[:-1]
+                yoy_off = annual_off.pct_change().dropna()
+                if len(annual_off) >= 4 and len(yoy_off):
+                    y_min = int(annual_off.index.min())
+                    y_max = int(annual_off.index.max())
+                    span = max(1, y_max - y_min)
+                    cagr_off = float((annual_off.iloc[-1] / annual_off.iloc[0]) ** (1 / span) - 1)
+                    cagr_2019_2023_off = cagr_off
+                    if 2019 in annual_off.index and 2023 in annual_off.index:
+                        cagr_2019_2023_off = float((annual_off.loc[2023] / annual_off.loc[2019]) ** (1 / 4) - 1)
+                    trend_payload.update(
+                        {
+                            "year_min": y_min,
+                            "year_max": y_max,
+                            "n_years": int(len(annual_off)),
+                            "cagr_all": cagr_off,
+                            "cagr_2019_2023": cagr_2019_2023_off,
+                            "yoy_mean": float(yoy_off.mean()),
+                            "yoy_median": float(yoy_off.median()),
+                            "yoy_p10": float(np.percentile(yoy_off, 10)),
+                            "yoy_p90": float(np.percentile(yoy_off, 90)),
+                            "trend_source": "iski_baraj_api_son_10_yil_toplam_verilen_su",
+                        }
+                    )
+        except Exception:
+            pass
 
     monthly_share = (
         df_full.groupby(["year", "month"])["month_total"]
@@ -125,12 +170,15 @@ def compute_adjustment_scale(panel: pd.DataFrame, baseline: dict, reservoir: dic
     df = df[["date", "fill_pct", "rain_mm", "et0_mm_month", "consumption_mean_monthly"]].dropna().copy()
     df = df.sort_values("date")
     df = df[(df["date"] >= "2010-01-01") & (df["date"] <= "2024-02-01")]
+    # Source panel keeps fill as 0..1 ratio; convert to 0..100 percentage points.
+    if float(df["fill_pct"].max()) <= 1.5:
+        df["fill_pct"] = df["fill_pct"] * 100.0
     df["delta_fill"] = df["fill_pct"].diff(1)
     df = df.dropna()
 
     area_km2 = float(baseline.get("area_km2_total", 99.69))
     kc = float(baseline.get("kc_open_water", 1.05))
-    catchment_km2 = float(reservoir.get("total_catchment_km2", 2688.0))
+    catchment_km2 = float(reservoir.get("total_catchment_km2", 3150.0))
     capacity_mcm = float(reservoir.get("total_active_capacity_mcm", 868.683))
     if capacity_mcm <= 0:
         return 1.0
@@ -147,8 +195,8 @@ def compute_adjustment_scale(panel: pd.DataFrame, baseline: dict, reservoir: dic
     if pred_abs <= 0:
         return 1.0
     scale = float(obs_abs / pred_abs)
-    # Keep within a reasonable band so sim remains visible but not exaggerated
-    return float(np.clip(scale, 0.01, 0.2))
+    # Keep within a realistic, visible band (monthly scenario effect calibration).
+    return float(np.clip(scale, 0.05, 0.8))
 
 
 def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baseline: dict, reservoir: dict) -> dict:
@@ -157,6 +205,9 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baselin
     df = df.rename(columns={"weighted_total_fill": "fill_pct"})
     df = df[["date", "fill_pct", "rain_mm", "et0_mm_month", "consumption_mean_monthly"]].dropna().copy()
     df = df.sort_values("date")
+    # Source panel keeps fill as 0..1 ratio; convert to 0..100 percentage points.
+    if float(df["fill_pct"].max()) <= 1.5:
+        df["fill_pct"] = df["fill_pct"] * 100.0
     df["delta_fill"] = df["fill_pct"].diff(1)
     df = df.dropna()
 
@@ -180,12 +231,17 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baselin
     obs["date"] = pd.to_datetime(obs["date"])
     obs = obs[(obs["date"] >= "2010-01-01") & (obs["date"] <= "2024-02-01")]
     obs = obs[["date", "weighted_total_fill"]].dropna().sort_values("date")
-    obs["delta_fill"] = obs["weighted_total_fill"].diff(1)
+    # Source panel keeps fill as 0..1 ratio; convert to 0..100 percentage points.
+    fill_series = obs["weighted_total_fill"] * 100.0 if float(obs["weighted_total_fill"].max()) <= 1.5 else obs["weighted_total_fill"]
+    obs["delta_fill"] = fill_series.diff(1)
     abs_delta = obs["delta_fill"].abs().dropna()
     if len(abs_delta):
-        scenario_delta_cap_pp = float(np.clip(np.percentile(abs_delta, 90) * 1.1, 0.08, 0.25))
+        # Scenario delta cap is calibrated from observed monthly volatility.
+        # We keep it below full historical swings because scenario effect is only
+        # the incremental change over the base model path.
+        scenario_delta_cap_pp = float(np.clip(np.percentile(abs_delta, 75) * 0.12, 0.25, 1.25))
     else:
-        scenario_delta_cap_pp = 0.16
+        scenario_delta_cap_pp = 0.8
 
     updated = dict(existing)
     runoff_coeff = float(existing.get("runoff_coeff", 0.6))
@@ -202,6 +258,9 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baselin
             "adjustment_cap_scale": adjustment_scale,
             "scenario_delta_cap_pp": scenario_delta_cap_pp,
             "scenario_damping_floor": 0.25,
+            "scenario_offset_cap_pp": 20.0,
+            "scenario_offset_damping_floor": 0.15,
+            "et0_runoff_beta": 0.30,
             "k_source": "observed_fill_pct_2010_2024_vs_balance_median_scale",
         }
     )

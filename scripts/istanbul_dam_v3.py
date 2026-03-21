@@ -816,6 +816,20 @@ def simulate_v3(
         return float(np.mean(vals)) if vals else 50.0
 
     rng = np.random.default_rng(seed)
+    # Observed monthly-change envelope used to suppress boundary jumps.
+    hist_abs_delta = (
+        data.loc[data["fill_pct"].notna(), "fill_pct"]
+        .diff()
+        .abs()
+        .dropna()
+    )
+    last_obs_date = data.loc[data["fill_pct"].notna(), "date"].max()
+    if len(hist_abs_delta):
+        monthly_delta_cap = float(np.clip(np.percentile(hist_abs_delta, 75) * 1.15, 6.0, 12.0))
+    else:
+        monthly_delta_cap = 10.0
+    first_year_turn = pd.Timestamp(f"{start_date.year + 1}-01-01")
+
     fixed_month_resid = None
     if not refit_each_year:
         train_df = data[(data["date"] < start_date) & data["fill_pct"].notna()].copy()
@@ -861,7 +875,15 @@ def simulate_v3(
     rw_state = 0.0  # düşük frekanslı rastgele yürüyüş (daha doğal dalga)
     for year in range(start_date.year, end_date.year + 1):
         if refit_each_year:
-            train_end = pd.Timestamp(f"{year - 1}-12-01")
+            if year == start_date.year and pd.notna(last_obs_date):
+                desired_train_end = pd.Timestamp(last_obs_date)
+            else:
+                desired_train_end = pd.Timestamp(f"{year - 1}-12-01")
+            # Only observed months should enter the yearly refit.
+            if pd.notna(last_obs_date):
+                train_end = min(pd.Timestamp(last_obs_date), desired_train_end)
+            else:
+                train_end = desired_train_end
             train_df = data[(data["date"] <= train_end) & data["fill_pct"].notna()].copy()
             train_df = train_df.dropna(subset=feat_cols + ["fill_pct"])
             if train_df.empty:
@@ -993,6 +1015,26 @@ def simulate_v3(
             rw_state = rw_decay * rw_state + float(rng.normal(0.0, 1.0))
             fill_blended = fill_blended + rw_state * rw_scale
             fill_blended = float(np.clip(fill_blended, 0, 100))
+
+            # Transition damping: first projected month + January boundaries.
+            prev_fill = buf_lag(i, 1)
+            if np.isfinite(prev_fill):
+                if i == start_i:
+                    alpha = 0.45
+                    delta_cap = monthly_delta_cap
+                elif row["date"] == first_year_turn:
+                    # Fix the first Dec→Jan discontinuity perceived in charts.
+                    alpha = 0.45
+                    delta_cap = min(monthly_delta_cap, 5.0)
+                elif month == 1:
+                    alpha = 0.60
+                    delta_cap = monthly_delta_cap
+                else:
+                    alpha = 1.0
+                    delta_cap = monthly_delta_cap
+                fill_blended = prev_fill + alpha * (fill_blended - prev_fill)
+                fill_blended = prev_fill + float(np.clip(fill_blended - prev_fill, -delta_cap, delta_cap))
+                fill_blended = float(np.clip(fill_blended, 0, 100))
 
             # Konformal bantlar
             lo_conf, hi_conf = conformal.predict_interval(np.array([fill_blended]))

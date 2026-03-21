@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -37,6 +38,23 @@ def load_js_payload(path: Path, prefix: str) -> dict:
     if payload.endswith(";"):
         payload = payload[:-1]
     return json.loads(payload)
+
+
+def load_reservoir_reference_simple(path: Path) -> dict:
+    text = path.read_text()
+    def find_num(key: str) -> float | None:
+        match = re.search(rf"{key}\\s*:\\s*([0-9.]+)", text)
+        return float(match.group(1)) if match else None
+    def find_str(key: str) -> str | None:
+        match = re.search(rf"{key}\\s*:\\s*\\\"([^\\\"]+)\\\"", text)
+        return match.group(1) if match else None
+    return {
+        "total_catchment_km2": find_num("total_catchment_km2") or 2688.0,
+        "total_active_capacity_mcm": find_num("total_active_capacity_mcm") or 868.683,
+        "source": find_str("source") or "",
+        "source_page": find_str("source_page") or "",
+        "updated_at": find_str("updated_at") or "",
+    }
 
 
 def write_js_payload(path: Path, var_name: str, payload: dict) -> None:
@@ -100,7 +118,40 @@ def build_usage_stats(panel: pd.DataFrame) -> tuple[dict, dict]:
     return trend_payload, profile_payload
 
 
-def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict) -> dict:
+def compute_adjustment_scale(panel: pd.DataFrame, baseline: dict, reservoir: dict, runoff_coeff: float) -> float:
+    df = panel.copy()
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.rename(columns={"weighted_total_fill": "fill_pct"})
+    df = df[["date", "fill_pct", "rain_mm", "et0_mm_month", "consumption_mean_monthly"]].dropna().copy()
+    df = df.sort_values("date")
+    df = df[(df["date"] >= "2010-01-01") & (df["date"] <= "2024-02-01")]
+    df["delta_fill"] = df["fill_pct"].diff(1)
+    df = df.dropna()
+
+    area_km2 = float(baseline.get("area_km2_total", 99.69))
+    kc = float(baseline.get("kc_open_water", 1.05))
+    catchment_km2 = float(reservoir.get("total_catchment_km2", 2688.0))
+    capacity_mcm = float(reservoir.get("total_active_capacity_mcm", 868.683))
+    if capacity_mcm <= 0:
+        return 1.0
+
+    inflow = df["rain_mm"] * catchment_km2 * 0.001
+    lake_rain = df["rain_mm"] * area_km2 * 0.001
+    evap = df["et0_mm_month"] * kc * area_km2 * 0.001
+    use = df["consumption_mean_monthly"] / 1e6
+    pred = (runoff_coeff * inflow + lake_rain - evap - use) / capacity_mcm * 100
+    obs = df["delta_fill"]
+
+    pred_abs = np.median(np.abs(pred))
+    obs_abs = np.median(np.abs(obs))
+    if pred_abs <= 0:
+        return 1.0
+    scale = float(obs_abs / pred_abs)
+    # Keep within a reasonable band so sim remains visible but not exaggerated
+    return float(np.clip(scale, 0.01, 0.2))
+
+
+def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict, baseline: dict, reservoir: dict) -> dict:
     df = panel.copy()
     df["date"] = pd.to_datetime(df["date"])
     df = df.rename(columns={"weighted_total_fill": "fill_pct"})
@@ -125,6 +176,8 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict) -> dict
     mean_use = float(df["consumption_mean_monthly"].mean())
 
     updated = dict(existing)
+    runoff_coeff = float(existing.get("runoff_coeff", 0.6))
+    adjustment_scale = compute_adjustment_scale(panel, baseline, reservoir, runoff_coeff)
     updated.update(
         {
             "a_rain": a,
@@ -134,6 +187,8 @@ def build_sim_coeffs(panel: pd.DataFrame, climate: dict, existing: dict) -> dict
             "mean_rain": mean_rain,
             "mean_et0": mean_et0,
             "mean_use_monthly": mean_use,
+            "adjustment_cap_scale": adjustment_scale,
+            "k_source": "observed_fill_pct_2010_2024_vs_balance_median_scale",
         }
     )
     return updated
@@ -175,6 +230,7 @@ def build_baseline(climate: dict, baseline: dict) -> dict:
 def main() -> None:
     panel = pd.read_csv(PANEL)
     climate = load_js_payload(CLIMATE_PATH, "window.CLIMATE_BASELINE = ")
+    reservoir = load_reservoir_reference_simple(ROOT / "assets/data/reservoir_reference.js")
 
     trend_payload, profile_payload = build_usage_stats(panel)
     for out in USAGE_TREND_OUT:
@@ -183,11 +239,11 @@ def main() -> None:
         write_js_payload(out, "USAGE_PROFILE", profile_payload)
 
     existing_coeffs = load_js_payload(SIM_COEFFS_OUT[0], "window.SIM_COEFFS = ")
-    updated_coeffs = build_sim_coeffs(panel, climate, existing_coeffs)
+    baseline_existing = load_js_payload(BASELINE_OUT[0], "window.BASELINE = ")
+    updated_coeffs = build_sim_coeffs(panel, climate, existing_coeffs, baseline_existing, reservoir)
     for out in SIM_COEFFS_OUT:
         write_js_payload(out, "SIM_COEFFS", updated_coeffs)
 
-    baseline_existing = load_js_payload(BASELINE_OUT[0], "window.BASELINE = ")
     updated_baseline = build_baseline(climate, baseline_existing)
     for out in BASELINE_OUT:
         write_js_payload(out, "BASELINE", updated_baseline)

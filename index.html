@@ -1399,6 +1399,11 @@ Fill′ = clip( Fill + (ΔS_scen − ΔS_base)/C )</pre>
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      const simModelSelect = document.getElementById('sim-model');
+      if (simModelSelect) {
+        // Force Ridge as startup model to avoid browser restoring a previous selection.
+        simModelSelect.value = 'ridge';
+      }
       modelData = window.MODEL_DATA || {};
       baseline = window.BASELINE || null;
       reservoirRef = window.RESERVOIR_REFERENCE || null;
